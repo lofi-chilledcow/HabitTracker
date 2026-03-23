@@ -1,0 +1,6 @@
+@HabitCompletionService_HostAddress = http://localhost:5225
+
+GET {{HabitCompletionService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

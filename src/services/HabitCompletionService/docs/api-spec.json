@@ -1,0 +1,274 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HabitCompletionService API",
+    "description": "Tracks habit completions for HabitTracker users. All endpoints require a valid JWT access token issued by AuthService.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5225",
+      "description": "Local development (HTTP)"
+    },
+    {
+      "url": "https://localhost:7086",
+      "description": "Local development (HTTPS)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "HabitCompletions",
+      "description": "Habit completion tracking"
+    }
+  ],
+  "security": [
+    { "bearerAuth": [] }
+  ],
+  "paths": {
+    "/api/habit-completions": {
+      "post": {
+        "tags": ["HabitCompletions"],
+        "summary": "Mark a habit as complete",
+        "description": "Records a completion for the authenticated user. UserId is extracted from the JWT `sub` claim — it is never supplied by the caller. CompletedDate defaults to today (UTC) if omitted.",
+        "operationId": "CreateHabitCompletion",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHabitCompletionDto"
+              },
+              "example": {
+                "habitId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                "completedDate": "2026-03-23T00:00:00Z",
+                "notes": "Felt great today"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Completion recorded. Location header points to the habit's completions.",
+            "headers": {
+              "Location": {
+                "description": "URL of the habit's completions list.",
+                "schema": {
+                  "type": "string",
+                  "example": "/api/habit-completions/habit/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HabitCompletionDto"
+                },
+                "example": {
+                  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                  "habitId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "userId": "d4e5f6a7-b8c9-0123-def0-456789abcdef",
+                  "completedDate": "2026-03-23T00:00:00Z",
+                  "notes": "Felt great today",
+                  "createdAt": "2026-03-23T08:30:00Z"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired JWT. Also returned if the `sub` claim is absent or not a valid GUID."
+          }
+        }
+      }
+    },
+    "/api/habit-completions/habit/{habitId}": {
+      "get": {
+        "tags": ["HabitCompletions"],
+        "summary": "Get completions by habit ID",
+        "description": "Returns all recorded completions for the given habit, ordered newest first.",
+        "operationId": "GetCompletionsByHabitId",
+        "parameters": [
+          {
+            "name": "habitId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of completions for the habit (may be empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HabitCompletionDto"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "habitId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "userId": "d4e5f6a7-b8c9-0123-def0-456789abcdef",
+                    "completedDate": "2026-03-23T00:00:00Z",
+                    "notes": "Felt great today",
+                    "createdAt": "2026-03-23T08:30:00Z"
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired JWT."
+          }
+        }
+      }
+    },
+    "/api/habit-completions/today": {
+      "get": {
+        "tags": ["HabitCompletions"],
+        "summary": "Get today's completions for the authenticated user",
+        "description": "Returns all completions recorded today (UTC date) for the user identified by the JWT `sub` claim.",
+        "operationId": "GetTodaysCompletions",
+        "responses": {
+          "200": {
+            "description": "List of today's completions (may be empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HabitCompletionDto"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "habitId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "userId": "d4e5f6a7-b8c9-0123-def0-456789abcdef",
+                    "completedDate": "2026-03-23T00:00:00Z",
+                    "notes": null,
+                    "createdAt": "2026-03-23T07:15:00Z"
+                  }
+                ]
+              }
+            }
+          },
+          "401": {
+            "description": "Missing, invalid, or expired JWT. Also returned if the `sub` claim is absent or not a valid GUID."
+          }
+        }
+      }
+    },
+    "/api/habit-completions/{id}": {
+      "delete": {
+        "tags": ["HabitCompletions"],
+        "summary": "Delete a completion",
+        "description": "Permanently removes a completion record. Only succeeds if the completion belongs to the authenticated user — users cannot delete each other's records.",
+        "operationId": "DeleteHabitCompletion",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Completion deleted. No content returned."
+          },
+          "401": {
+            "description": "Missing, invalid, or expired JWT. Also returned if the `sub` claim is absent or not a valid GUID."
+          },
+          "404": {
+            "description": "No completion with that ID exists, or it belongs to a different user."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CreateHabitCompletionDto": {
+        "type": "object",
+        "required": ["habitId"],
+        "properties": {
+          "habitId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "ID of the habit being completed.",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "completedDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "description": "Date the habit was completed (UTC). Defaults to today if omitted. Time component is truncated to date.",
+            "example": "2026-03-23T00:00:00Z"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000,
+            "description": "Optional notes about this completion.",
+            "example": "Felt great today"
+          }
+        }
+      },
+      "HabitCompletionDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+          },
+          "habitId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid",
+            "example": "d4e5f6a7-b8c9-0123-def0-456789abcdef"
+          },
+          "completedDate": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-03-23T00:00:00Z"
+          },
+          "notes": {
+            "type": "string",
+            "nullable": true,
+            "maxLength": 1000,
+            "example": "Felt great today"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "UTC timestamp when the record was created.",
+            "example": "2026-03-23T08:30:00Z"
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT issued by AuthService via /api/auth/login or /api/auth/register."
+      }
+    }
+  }
+}
