@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet build:*)",
+      "Bash(xargs rm:*)",
+      "Bash(dotnet ef:*)",
+      "Bash(dotnet tool:*)",
+      "Bash(cmd //c \"taskkill /PID 61344 /F\")",
+      "Bash(dotnet new:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(git:*)"
+    ]
+  }
+}
