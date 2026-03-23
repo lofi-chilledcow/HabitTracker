@@ -1,0 +1,304 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "HabitService API",
+    "description": "Habit management service for HabitTracker. Provides full CRUD for user habits.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5110",
+      "description": "Local development (HTTP)"
+    },
+    {
+      "url": "https://localhost:7006",
+      "description": "Local development (HTTPS)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Habits",
+      "description": "Habit CRUD operations"
+    }
+  ],
+  "paths": {
+    "/api/habits": {
+      "get": {
+        "tags": ["Habits"],
+        "summary": "Get all habits",
+        "description": "Returns all habits in the database.",
+        "operationId": "GetAllHabits",
+        "responses": {
+          "200": {
+            "description": "List of habits (may be empty).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HabitDto"
+                  }
+                },
+                "example": [
+                  {
+                    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                    "name": "Morning Run",
+                    "description": "Run 5km before breakfast",
+                    "frequency": "Daily",
+                    "createdAt": "2026-03-22T00:00:00Z",
+                    "isActive": true
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Habits"],
+        "summary": "Create a habit",
+        "description": "Creates a new habit. Returns the created resource with a Location header.",
+        "operationId": "CreateHabit",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHabitDto"
+              },
+              "example": {
+                "name": "Morning Run",
+                "description": "Run 5km before breakfast",
+                "frequency": "Daily"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Habit created. Location header points to the new resource.",
+            "headers": {
+              "Location": {
+                "description": "URL of the newly created habit.",
+                "schema": {
+                  "type": "string",
+                  "example": "/api/habits/3fa85f64-5717-4562-b3fc-2c963f66afa6"
+                }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HabitDto"
+                },
+                "example": {
+                  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                  "name": "Morning Run",
+                  "description": "Run 5km before breakfast",
+                  "frequency": "Daily",
+                  "createdAt": "2026-03-22T10:00:00Z",
+                  "isActive": true
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/habits/{id}": {
+      "get": {
+        "tags": ["Habits"],
+        "summary": "Get a habit by ID",
+        "operationId": "GetHabitById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Habit found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HabitDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Habit not found."
+          }
+        }
+      },
+      "put": {
+        "tags": ["Habits"],
+        "summary": "Update a habit",
+        "description": "Replaces all mutable fields on the habit. Partial updates are not supported.",
+        "operationId": "UpdateHabit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHabitDto"
+              },
+              "example": {
+                "name": "Morning Run",
+                "description": "Run 10km before breakfast",
+                "frequency": "Daily",
+                "isActive": true
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Habit updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HabitDto"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Habit not found."
+          }
+        }
+      },
+      "delete": {
+        "tags": ["Habits"],
+        "summary": "Delete a habit",
+        "operationId": "DeleteHabit",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Habit deleted. No content returned."
+          },
+          "404": {
+            "description": "Habit not found."
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "HabitDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+          },
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "example": "Morning Run"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true,
+            "example": "Run 5km before breakfast"
+          },
+          "frequency": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Daily"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "example": "2026-03-22T10:00:00Z"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      },
+      "CreateHabitDto": {
+        "type": "object",
+        "required": ["name", "frequency"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "example": "Morning Run"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true,
+            "example": "Run 5km before breakfast"
+          },
+          "frequency": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Daily"
+          }
+        }
+      },
+      "UpdateHabitDto": {
+        "type": "object",
+        "required": ["name", "frequency", "isActive"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 200,
+            "example": "Morning Run"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 1000,
+            "nullable": true,
+            "example": "Run 10km before breakfast"
+          },
+          "frequency": {
+            "type": "string",
+            "maxLength": 50,
+            "example": "Daily"
+          },
+          "isActive": {
+            "type": "boolean",
+            "example": true
+          }
+        }
+      }
+    }
+  }
+}

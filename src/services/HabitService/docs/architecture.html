@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HabitService — CQRS Architecture</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:           #0f1117;
+      --surface:      #1a1d27;
+      --surface2:     #22263a;
+      --border:       #2e3250;
+      --accent-blue:  #4f8ef7;
+      --accent-green: #3ecf8e;
+      --accent-amber: #f5a623;
+      --accent-purple:#a78bfa;
+      --accent-red:   #f87171;
+      --text:         #e2e8f0;
+      --text-muted:   #64748b;
+      --text-dim:     #94a3b8;
+      --font:         'Inter', system-ui, sans-serif;
+      --mono:         'JetBrains Mono', 'Fira Code', monospace;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    /* ── Header ── */
+    header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    header .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #4f8ef722, #a78bfa22);
+      border: 1px solid #4f8ef744;
+      color: var(--accent-blue);
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 20px;
+      margin-bottom: 16px;
+    }
+    header h1 {
+      font-size: clamp(22px, 4vw, 36px);
+      font-weight: 700;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #e2e8f0 30%, #94a3b8);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+    }
+    header p {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    /* ── Diagram container ── */
+    .diagram {
+      max-width: 1100px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── Layer row ── */
+    .layer {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+    }
+
+    .layer-label {
+      width: 110px;
+      min-width: 110px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 18px;
+      color: var(--text-muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+
+    .layer-content {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    /* ── Arrow rows ── */
+    .arrow-row {
+      display: flex;
+      align-items: center;
+    }
+    .arrow-row .layer-label { color: transparent; user-select: none; }
+    .arrow-row .layer-content {
+      padding: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0;
+    }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      position: relative;
+      transition: border-color .2s, box-shadow .2s;
+      cursor: default;
+    }
+    .card:hover {
+      box-shadow: 0 0 0 1px var(--hover-color, var(--accent-blue)), 0 8px 32px #0008;
+      border-color: var(--hover-color, var(--accent-blue));
+      z-index: 1;
+    }
+    .card .card-icon {
+      font-size: 18px;
+      line-height: 1;
+      margin-bottom: 2px;
+    }
+    .card .card-title {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .card .card-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .card .card-tag {
+      display: inline-block;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 4px;
+      margin-top: 4px;
+      width: fit-content;
+    }
+
+    /* colour themes per layer */
+    .c-http   { --hover-color: #38bdf8; border-color: #38bdf820; }
+    .c-http   .card-tag { background: #38bdf815; color: #38bdf8; }
+    .c-http   .card-icon { color: #38bdf8; }
+
+    .c-cmd    { --hover-color: #f87171; border-color: #f8717120; }
+    .c-cmd    .card-tag { background: #f8717115; color: #f87171; }
+    .c-cmd    .card-icon { color: #f87171; }
+
+    .c-qry    { --hover-color: #3ecf8e; border-color: #3ecf8e20; }
+    .c-qry    .card-tag { background: #3ecf8e15; color: #3ecf8e; }
+    .c-qry    .card-icon { color: #3ecf8e; }
+
+    .c-hcmd   { --hover-color: #fb923c; border-color: #fb923c20; }
+    .c-hcmd   .card-tag { background: #fb923c15; color: #fb923c; }
+    .c-hcmd   .card-icon { color: #fb923c; }
+
+    .c-hqry   { --hover-color: #34d399; border-color: #34d39920; }
+    .c-hqry   .card-tag { background: #34d39915; color: #34d399; }
+    .c-hqry   .card-icon { color: #34d399; }
+
+    .c-db     { --hover-color: #a78bfa; border-color: #a78bfa20; }
+    .c-db     .card-tag { background: #a78bfa15; color: #a78bfa; }
+    .c-db     .card-icon { color: #a78bfa; }
+
+    .c-sql    { --hover-color: #f5a623; border-color: #f5a62320; }
+    .c-sql    .card-tag { background: #f5a62315; color: #f5a623; }
+    .c-sql    .card-icon { color: #f5a623; }
+
+    /* ── MediatR bus card ── */
+    .bus-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0;
+    }
+    .bus {
+      background: linear-gradient(90deg, #4f8ef708, #a78bfa18, #4f8ef708);
+      border: 1px dashed #a78bfa55;
+      border-radius: 10px;
+      padding: 10px 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+    }
+    .bus-icon { font-size: 16px; }
+    .bus-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent-purple);
+      letter-spacing: .04em;
+    }
+    .bus-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      font-family: var(--mono);
+      margin-left: auto;
+    }
+
+    /* ── Split column (cmd | qry) ── */
+    .split {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .split-section {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .split-header {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      padding: 5px 12px;
+      border-radius: 6px;
+      text-align: center;
+    }
+    .split-header.sh-cmd { background: #f8717112; color: #f87171; border: 1px solid #f8717125; }
+    .split-header.sh-qry { background: #3ecf8e12; color: #3ecf8e; border: 1px solid #3ecf8e25; }
+
+    /* ── Arrows ── */
+    .arrows-col {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 2px;
+      padding: 4px 0;
+      flex: 1;
+    }
+    .arrow-svg { display: block; }
+
+    /* vertical connector between layers */
+    .v-connector {
+      display: flex;
+      align-items: flex-start;
+      flex: 1;
+    }
+    .v-connector-inner {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* ── Legend ── */
+    .legend {
+      max-width: 1100px;
+      margin: 48px auto 0;
+      padding: 20px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px 36px;
+    }
+    .legend-title {
+      width: 100%;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+    .legend-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    /* ── Request trace table ── */
+    .trace {
+      max-width: 1100px;
+      margin: 32px auto 0;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .trace-header {
+      padding: 16px 24px 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .trace-header h2 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 2px;
+    }
+    .trace-header p { font-size: 11px; color: var(--text-muted); }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+    th {
+      text-align: left;
+      padding: 10px 16px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: 11px 16px;
+      border-bottom: 1px solid #1e2236;
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: #ffffff04; }
+    .method {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 4px;
+      min-width: 52px;
+      text-align: center;
+    }
+    .m-get    { background:#3ecf8e18; color:#3ecf8e; }
+    .m-post   { background:#4f8ef718; color:#4f8ef7; }
+    .m-put    { background:#f5a62318; color:#f5a623; }
+    .m-delete { background:#f8717118; color:#f87171; }
+    .mono     { font-family: var(--mono); color: var(--text-dim); font-size: 11px; }
+    .type-cmd { color: #f87171; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
+    .type-qry { color: #3ecf8e; font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing:.06em; }
+
+    /* ── Responsive ── */
+    @media (max-width: 700px) {
+      .layer-label { display: none; }
+      .split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="badge">.NET 8 · CQRS · MediatR · EF Core</div>
+  <h1>HabitService — Architecture</h1>
+  <p>CQRS request flow: Controller → MediatR Bus → Handler → DbContext → SQL Server</p>
+</header>
+
+<div class="diagram">
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 1: HTTP / Controller
+  ════════════════════════════════════════════ -->
+  <div class="layer">
+    <div class="layer-label">HTTP</div>
+    <div class="layer-content">
+      <div class="card c-http" style="flex:1">
+        <span class="card-icon">🌐</span>
+        <span class="card-title">HabitsController</span>
+        <span class="card-sub">
+          GET &nbsp;/api/habits<br>
+          GET &nbsp;/api/habits/{id}<br>
+          POST &nbsp;/api/habits<br>
+          PUT &nbsp;/api/habits/{id}<br>
+          DELETE /api/habits/{id}
+        </span>
+        <span class="card-tag">Controllers/HabitsController.cs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow down -->
+  <div class="arrow-row">
+    <div class="layer-label"></div>
+    <div class="layer-content" style="justify-content:center; padding:2px 0;">
+      <svg class="arrow-svg" width="2" height="28" viewBox="0 0 2 28">
+        <line x1="1" y1="0" x2="1" y2="20" stroke="#4f8ef7" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <polygon points="1,28 -4,18 6,18" fill="#4f8ef7"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 2: MediatR Bus
+  ════════════════════════════════════════════ -->
+  <div class="layer">
+    <div class="layer-label">Pipeline</div>
+    <div class="layer-content">
+      <div class="bus">
+        <span class="bus-icon">⚡</span>
+        <span class="bus-title">IMediator.Send( request )</span>
+        <span class="bus-sub">MediatR 12.4.1 — routes to registered handler</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow down — splits into two -->
+  <div class="arrow-row">
+    <div class="layer-label"></div>
+    <div class="layer-content" style="padding: 0;">
+      <div style="flex:1; position:relative; height:36px;">
+        <svg width="100%" height="36" viewBox="0 0 400 36" preserveAspectRatio="none" style="display:block;">
+          <!-- vertical stem -->
+          <line x1="200" y1="0" x2="200" y2="12" stroke="#64748b" stroke-width="1.5"/>
+          <!-- horizontal bar -->
+          <line x1="100" y1="12" x2="300" y2="12" stroke="#64748b" stroke-width="1.5"/>
+          <!-- left branch (command) -->
+          <line x1="100" y1="12" x2="100" y2="28" stroke="#f87171" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polygon points="100,36 95,26 105,26" fill="#f87171"/>
+          <!-- right branch (query) -->
+          <line x1="300" y1="12" x2="300" y2="28" stroke="#3ecf8e" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polygon points="300,36 295,26 305,26" fill="#3ecf8e"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 3: Commands | Queries
+  ════════════════════════════════════════════ -->
+  <div class="layer">
+    <div class="layer-label">Messages</div>
+    <div class="layer-content">
+      <div class="split">
+
+        <!-- Commands -->
+        <div class="split-section">
+          <div class="split-header sh-cmd">Write — Commands</div>
+          <div class="card c-cmd">
+            <span class="card-icon">✏️</span>
+            <span class="card-title">CreateHabitCommand</span>
+            <span class="card-sub">Name, Description, Frequency → HabitDto</span>
+            <span class="card-tag">IRequest&lt;HabitDto&gt;</span>
+          </div>
+          <div class="card c-cmd">
+            <span class="card-icon">🔄</span>
+            <span class="card-title">UpdateHabitCommand</span>
+            <span class="card-sub">Id + full fields → HabitDto?</span>
+            <span class="card-tag">IRequest&lt;HabitDto?&gt;</span>
+          </div>
+          <div class="card c-cmd">
+            <span class="card-icon">🗑️</span>
+            <span class="card-title">DeleteHabitCommand</span>
+            <span class="card-sub">Id → bool (found &amp; deleted)</span>
+            <span class="card-tag">IRequest&lt;bool&gt;</span>
+          </div>
+        </div>
+
+        <!-- Queries -->
+        <div class="split-section">
+          <div class="split-header sh-qry">Read — Queries</div>
+          <div class="card c-qry">
+            <span class="card-icon">📋</span>
+            <span class="card-title">GetAllHabitsQuery</span>
+            <span class="card-sub">— → IEnumerable&lt;HabitDto&gt;</span>
+            <span class="card-tag">IRequest&lt;IEnumerable&lt;HabitDto&gt;&gt;</span>
+          </div>
+          <div class="card c-qry">
+            <span class="card-icon">🔍</span>
+            <span class="card-title">GetHabitByIdQuery</span>
+            <span class="card-sub">Id → HabitDto?</span>
+            <span class="card-tag">IRequest&lt;HabitDto?&gt;</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow down — two columns merge back -->
+  <div class="arrow-row">
+    <div class="layer-label"></div>
+    <div class="layer-content" style="padding: 0;">
+      <div style="flex:1; position:relative; height:36px;">
+        <svg width="100%" height="36" viewBox="0 0 400 36" preserveAspectRatio="none" style="display:block;">
+          <!-- left branch down (command) -->
+          <line x1="100" y1="0" x2="100" y2="12" stroke="#fb923c" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polygon points="100,20 95,10 105,10" fill="#fb923c"/>
+          <!-- right branch down (query) -->
+          <line x1="300" y1="0" x2="300" y2="12" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polygon points="300,20 295,10 305,10" fill="#34d399"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 4: Handlers
+  ════════════════════════════════════════════ -->
+  <div class="layer">
+    <div class="layer-label">Handlers</div>
+    <div class="layer-content">
+      <div class="split">
+
+        <!-- Command Handlers -->
+        <div class="split-section">
+          <div class="split-header sh-cmd">Command Handlers</div>
+          <div class="card c-hcmd">
+            <span class="card-icon">⚙️</span>
+            <span class="card-title">CreateHabitCommandHandler</span>
+            <span class="card-sub">new Habit → db.Add → SaveChanges</span>
+            <span class="card-tag">Commands/Handlers/</span>
+          </div>
+          <div class="card c-hcmd">
+            <span class="card-icon">⚙️</span>
+            <span class="card-title">UpdateHabitCommandHandler</span>
+            <span class="card-sub">FindAsync → mutate → SaveChanges</span>
+            <span class="card-tag">Commands/Handlers/</span>
+          </div>
+          <div class="card c-hcmd">
+            <span class="card-icon">⚙️</span>
+            <span class="card-title">DeleteHabitCommandHandler</span>
+            <span class="card-sub">FindAsync → db.Remove → SaveChanges</span>
+            <span class="card-tag">Commands/Handlers/</span>
+          </div>
+        </div>
+
+        <!-- Query Handlers -->
+        <div class="split-section">
+          <div class="split-header sh-qry">Query Handlers</div>
+          <div class="card c-hqry">
+            <span class="card-icon">🔎</span>
+            <span class="card-title">GetAllHabitsQueryHandler</span>
+            <span class="card-sub">AsNoTracking → Select → ToListAsync</span>
+            <span class="card-tag">Queries/Handlers/</span>
+          </div>
+          <div class="card c-hqry">
+            <span class="card-icon">🔎</span>
+            <span class="card-title">GetHabitByIdQueryHandler</span>
+            <span class="card-sub">AsNoTracking → Where → FirstOrDefaultAsync</span>
+            <span class="card-tag">Queries/Handlers/</span>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow down — re-merge -->
+  <div class="arrow-row">
+    <div class="layer-label"></div>
+    <div class="layer-content" style="padding:0;">
+      <div style="flex:1; position:relative; height:40px;">
+        <svg width="100%" height="40" viewBox="0 0 400 40" preserveAspectRatio="none" style="display:block;">
+          <!-- left leg -->
+          <line x1="100" y1="0" x2="100" y2="16" stroke="#a78bfa" stroke-width="1.5"/>
+          <!-- right leg -->
+          <line x1="300" y1="0" x2="300" y2="16" stroke="#a78bfa" stroke-width="1.5"/>
+          <!-- horizontal merge -->
+          <line x1="100" y1="16" x2="300" y2="16" stroke="#a78bfa" stroke-width="1.5"/>
+          <!-- centre stem -->
+          <line x1="200" y1="16" x2="200" y2="30" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="4 3"/>
+          <polygon points="200,40 195,30 205,30" fill="#a78bfa"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 5: DbContext
+  ════════════════════════════════════════════ -->
+  <div class="layer">
+    <div class="layer-label">Data</div>
+    <div class="layer-content">
+      <div class="card c-db" style="flex:1">
+        <span class="card-icon">🗄️</span>
+        <span class="card-title">HabitDbContext</span>
+        <span class="card-sub">
+          DbSet&lt;Habit&gt; Habits<br>
+          EF Core 9 · SQL Server provider<br>
+          Change tracking · SaveChangesAsync
+        </span>
+        <span class="card-tag">Data/HabitDbContext.cs</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- arrow down -->
+  <div class="arrow-row">
+    <div class="layer-label"></div>
+    <div class="layer-content" style="justify-content:center; padding:2px 0;">
+      <svg class="arrow-svg" width="2" height="28" viewBox="0 0 2 28">
+        <line x1="1" y1="0" x2="1" y2="20" stroke="#f5a623" stroke-width="1.5" stroke-dasharray="4 3"/>
+        <polygon points="1,28 -4,18 6,18" fill="#f5a623"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════
+       LAYER 6: SQL Server
+  ════════════════════════════════════════════ -->
+  <div class="layer">
+    <div class="layer-label">Storage</div>
+    <div class="layer-content">
+      <div class="card c-sql" style="flex:1">
+        <span class="card-icon">🏛️</span>
+        <span class="card-title">SQL Server — HabitTracker_Dev</span>
+        <span class="card-sub">
+          192.168.1.226,1433 · TrustServerCertificate=True<br><br>
+          <strong style="color:var(--text-dim)">dbo.Habits</strong><br>
+          Id (PK) · Name · Description · Frequency · CreatedAt · IsActive
+        </span>
+        <span class="card-tag">InitialCreate migration applied</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /.diagram -->
+
+<!-- ═══════════════════════════════════════════
+     REQUEST TRACE TABLE
+════════════════════════════════════════════ -->
+<div class="trace">
+  <div class="trace-header">
+    <h2>Request → Handler Mapping</h2>
+    <p>Every HTTP request resolves to exactly one MediatR message and one handler</p>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Method</th>
+        <th>Endpoint</th>
+        <th>Type</th>
+        <th>MediatR Message</th>
+        <th>Handler</th>
+        <th>DB Operation</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><span class="method m-get">GET</span></td>
+        <td class="mono">/api/habits</td>
+        <td><span class="type-qry">Query</span></td>
+        <td class="mono">GetAllHabitsQuery</td>
+        <td class="mono">GetAllHabitsQueryHandler</td>
+        <td class="mono" style="color:#3ecf8e">SELECT * (AsNoTracking)</td>
+      </tr>
+      <tr>
+        <td><span class="method m-get">GET</span></td>
+        <td class="mono">/api/habits/{id}</td>
+        <td><span class="type-qry">Query</span></td>
+        <td class="mono">GetHabitByIdQuery</td>
+        <td class="mono">GetHabitByIdQueryHandler</td>
+        <td class="mono" style="color:#3ecf8e">SELECT WHERE Id (AsNoTracking)</td>
+      </tr>
+      <tr>
+        <td><span class="method m-post">POST</span></td>
+        <td class="mono">/api/habits</td>
+        <td><span class="type-cmd">Command</span></td>
+        <td class="mono">CreateHabitCommand</td>
+        <td class="mono">CreateHabitCommandHandler</td>
+        <td class="mono" style="color:#f87171">INSERT + SaveChanges</td>
+      </tr>
+      <tr>
+        <td><span class="method m-put">PUT</span></td>
+        <td class="mono">/api/habits/{id}</td>
+        <td><span class="type-cmd">Command</span></td>
+        <td class="mono">UpdateHabitCommand</td>
+        <td class="mono">UpdateHabitCommandHandler</td>
+        <td class="mono" style="color:#f87171">UPDATE + SaveChanges</td>
+      </tr>
+      <tr>
+        <td><span class="method m-delete">DELETE</span></td>
+        <td class="mono">/api/habits/{id}</td>
+        <td><span class="type-cmd">Command</span></td>
+        <td class="mono">DeleteHabitCommand</td>
+        <td class="mono">DeleteHabitCommandHandler</td>
+        <td class="mono" style="color:#f87171">DELETE + SaveChanges</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     LEGEND
+════════════════════════════════════════════ -->
+<div class="legend">
+  <div class="legend-title">Legend</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#38bdf8"></div> HTTP layer — thin controller, delegates only</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> MediatR bus — decouples caller from handler</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f87171"></div> Command — mutates state, uses change tracking</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3ecf8e"></div> Query — read-only, AsNoTracking for performance</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#fb923c"></div> Command handler — owns transaction via SaveChangesAsync</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#34d399"></div> Query handler — projects directly to DTO, no entity hydration overhead</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#a78bfa"></div> HabitDbContext — single EF Core context, scoped lifetime</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f5a623"></div> SQL Server — dbo.Habits table, schema managed by EF migrations</div>
+</div>
+
+</body>
+</html>
