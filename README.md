@@ -234,3 +234,69 @@ refactor(auth): extract JWT generation into JwtTokenService
 - One commit per completed feature or fix — do not batch unrelated changes
 - Description is lowercase, imperative mood, no trailing period
 - Keep the description under 72 characters
+
+---
+
+## Git Workflow
+
+This project uses **trunk-based development**. All work is committed directly to `main`.
+
+- No long-lived feature branches
+- Commits are small and independently deployable
+- CI runs on every push to `main`
+- If a change is risky, it is gated behind a feature flag rather than a branch
+
+This keeps history linear, eliminates merge conflicts, and means `main` is always the source of truth for what is deployed.
+
+---
+
+## Deployment Roadmap
+
+Planned deployment phases in order. Each phase builds on the previous one.
+
+### Phase 1 — IIS on a Windows VM
+
+The initial production target is a single Windows VM running IIS. Each service is hosted as a separate IIS site backed by a .NET 8 Windows service or in-process host.
+
+**Why IIS over Docker:**
+The target VM is Windows-only without Docker Desktop or WSL2 available. IIS is a first-class host for ASP.NET Core on Windows, has no container runtime overhead, and integrates directly with Windows auth and certificate management. Docker can be revisited if deployment targets change.
+
+Planned steps:
+1. Provision VM, install IIS + .NET 8 Hosting Bundle + SQL Server
+2. Create one IIS site per service, each bound to its own port
+3. Set environment variables via IIS application pool or Windows environment
+4. Configure IIS as a reverse proxy in front of the API Gateway (optional, for port 80/443)
+5. Verify end-to-end routing through the gateway
+
+### Phase 2 — CI/CD with GitHub Actions
+
+Automate build, test, and deployment on every push to `main`.
+
+Planned pipeline:
+1. `build` job — `dotnet restore` + `dotnet build` for all services
+2. `test` job — run unit tests (depends on `build`)
+3. `deploy` job — publish each service and robocopy artifacts to the VM over SSH (depends on `test`)
+4. Trigger IIS app pool recycle via `appcmd` after artifact copy
+
+Secrets (`HABITTRACKER_DB_PASSWORD`, `HABITTRACKER_JWT_SECRET`, VM credentials) will be stored in GitHub Actions repository secrets.
+
+### Phase 3 — Unit Tests
+
+Add an xUnit test project per service covering:
+
+- Command and query handlers (business logic)
+- Validators (FluentValidation rules)
+- JWT generation and validation (AuthService)
+
+Tests run in-memory — no database required. Integration tests that hit SQL Server are a later addition.
+
+### Phase 4 — Frontend React App
+
+A React SPA living under `src/frontend/`. Planned scope:
+
+- Auth flow (register, login, token refresh)
+- Habit list and CRUD forms
+- Daily completion check-off view
+- Calls the API Gateway exclusively — no direct service calls
+
+Hosting: served as static files from IIS alongside the API, or from a separate IIS site on port 3000.
