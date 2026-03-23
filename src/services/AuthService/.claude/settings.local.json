@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet ef:*)",
+      "Bash(dotnet build:*)",
+      "Bash(dotnet add:*)",
+      "Bash(dotnet new:*)",
+      "Bash(cat /c/Users/fanhu/git/HabitTracker/src/services/HabitCompletionService/Data/Migrations/*.cs)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)"
+    ]
+  }
+}

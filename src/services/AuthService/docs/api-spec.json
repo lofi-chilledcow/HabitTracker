@@ -1,0 +1,351 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "AuthService API",
+    "description": "Authentication service for HabitTracker. Handles user registration, login, and JWT access/refresh token management.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:5039",
+      "description": "Local development (HTTP)"
+    },
+    {
+      "url": "https://localhost:7125",
+      "description": "Local development (HTTPS)"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Authentication and token management"
+    }
+  ],
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Register a new user",
+        "description": "Creates a new user account with the default 'User' role, hashes the password with BCrypt, and returns a JWT access token and refresh token.",
+        "operationId": "Register",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              },
+              "example": {
+                "username": "johndoe",
+                "email": "john@example.com",
+                "password": "Secret123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registration successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu...",
+                  "username": "johndoe",
+                  "email": "john@example.com"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                },
+                "example": {
+                  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                  "title": "One or more validation errors occurred.",
+                  "status": 400,
+                  "errors": {
+                    "Username": ["Username must be at least 3 characters."],
+                    "Email": ["Email must be a valid email address."],
+                    "Password": [
+                      "Password must be at least 8 characters.",
+                      "Password must contain at least one uppercase letter.",
+                      "Password must contain at least one number."
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email or username already taken.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Email is already registered."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Log in with email and password",
+        "description": "Validates credentials against the BCrypt hash and returns a JWT access token and a new refresh token.",
+        "operationId": "Login",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              },
+              "example": {
+                "email": "john@example.com",
+                "password": "Secret123"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu...",
+                  "username": "johndoe",
+                  "email": "john@example.com"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation failed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ValidationProblemDetails"
+                },
+                "example": {
+                  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
+                  "title": "One or more validation errors occurred.",
+                  "status": 400,
+                  "errors": {
+                    "Email": ["Email must be a valid email address."]
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid credentials.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Invalid email or password."
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": ["Auth"],
+        "summary": "Refresh an access token",
+        "description": "Validates the provided refresh token, revokes it (rotation), issues a new refresh token, and returns a new JWT access token.",
+        "operationId": "Refresh",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshRequest"
+              },
+              "example": {
+                "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu..."
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token refreshed. The old refresh token is revoked — store and use the new one.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponse"
+                },
+                "example": {
+                  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "refreshToken": "bmV3UmVmcmVzaFRva2VuVmFsdWVIZXJl...",
+                  "username": "johndoe",
+                  "email": "john@example.com"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Refresh token is invalid, expired, or already revoked.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                },
+                "example": {
+                  "error": "Invalid or expired refresh token."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "RegisterRequest": {
+        "type": "object",
+        "required": ["username", "email", "password"],
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "description": "Min 3 characters. No spaces.",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "minLength": 8,
+            "description": "Min 8 characters. At least one uppercase letter and one number.",
+            "example": "Secret123"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "required": ["email", "password"],
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "Secret123"
+          }
+        }
+      },
+      "RefreshRequest": {
+        "type": "object",
+        "required": ["refreshToken"],
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "The refresh token from a previous login or refresh response.",
+            "example": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu..."
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Signed JWT. Valid for 60 minutes.",
+            "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "Opaque token. Valid for 30 days. Single-use — rotated on every call to /refresh.",
+            "example": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu..."
+          },
+          "username": {
+            "type": "string",
+            "example": "johndoe"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "example": "john@example.com"
+          }
+        }
+      },
+      "ValidationProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "example": "https://tools.ietf.org/html/rfc7231#section-6.5.1"
+          },
+          "title": {
+            "type": "string",
+            "example": "One or more validation errors occurred."
+          },
+          "status": {
+            "type": "integer",
+            "example": 400
+          },
+          "errors": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "example": {
+              "Password": [
+                "Password must be at least 8 characters.",
+                "Password must contain at least one uppercase letter."
+              ]
+            }
+          }
+        }
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "example": "Invalid email or password."
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT returned by /api/auth/login or /api/auth/register."
+      }
+    }
+  }
+}
