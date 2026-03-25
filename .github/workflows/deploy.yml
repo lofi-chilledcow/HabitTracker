@@ -1,0 +1,128 @@
+name: Build, Test, and Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: self-hosted
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build AuthService
+        run: dotnet build src/services/AuthService/AuthService.csproj --configuration Release
+        shell: cmd
+
+      - name: Build HabitService
+        run: dotnet build src/services/HabitService/HabitService.csproj --configuration Release
+        shell: cmd
+
+      - name: Build HabitCompletionService
+        run: dotnet build src/services/HabitCompletionService/HabitCompletionService.csproj --configuration Release
+        shell: cmd
+
+      - name: Build ApiGateway
+        run: dotnet build src/services/ApiGateway/ApiGateway.csproj --configuration Release
+        shell: cmd
+
+  test:
+    name: Test
+    runs-on: self-hosted
+    needs: build
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run tests
+        run: |
+          $testProjects = Get-ChildItem -Path src -Recurse -Filter "*.csproj" |
+            Where-Object { $_.Name -match "Tests?\.csproj$" }
+
+          if ($testProjects.Count -eq 0) {
+            Write-Host "No test projects found — skipping."
+            exit 0
+          }
+
+          foreach ($project in $testProjects) {
+            Write-Host "Testing $($project.FullName)"
+            dotnet test $project.FullName --configuration Release --no-build
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
+        shell: pwsh
+
+  publish:
+    name: Publish
+    runs-on: self-hosted
+    needs: test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Publish AuthService
+        run: dotnet publish src/services/AuthService/AuthService.csproj --configuration Release --output publish\AuthService
+        shell: cmd
+
+      - name: Publish HabitService
+        run: dotnet publish src/services/HabitService/HabitService.csproj --configuration Release --output publish\HabitService
+        shell: cmd
+
+      - name: Publish HabitCompletionService
+        run: dotnet publish src/services/HabitCompletionService/HabitCompletionService.csproj --configuration Release --output publish\HabitCompletionService
+        shell: cmd
+
+      - name: Publish ApiGateway
+        run: dotnet publish src/services/ApiGateway/ApiGateway.csproj --configuration Release --output publish\ApiGateway
+        shell: cmd
+
+      - name: Upload publish artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: publish
+          path: publish\
+          retention-days: 1
+
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    needs: publish
+    env:
+      HABITTRACKER_DB_PASSWORD: ${{ secrets.HABITTRACKER_DB_PASSWORD }}
+      HABITTRACKER_JWT_SECRET: ${{ secrets.HABITTRACKER_JWT_SECRET }}
+    steps:
+      - name: Download publish artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: publish
+          path: publish\
+
+      - name: Deploy AuthService
+        run: |
+          robocopy publish\AuthService C:\inetpub\HabitTracker\AuthService /MIR /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+        shell: pwsh
+
+      - name: Deploy HabitService
+        run: |
+          robocopy publish\HabitService C:\inetpub\HabitTracker\HabitService /MIR /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+        shell: pwsh
+
+      - name: Deploy HabitCompletionService
+        run: |
+          robocopy publish\HabitCompletionService C:\inetpub\HabitTracker\HabitCompletionService /MIR /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+        shell: pwsh
+
+      - name: Deploy ApiGateway
+        run: |
+          robocopy publish\ApiGateway C:\inetpub\HabitTracker\ApiGateway /MIR /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+        shell: pwsh
+
+      - name: Restart IIS
+        run: iisreset
+        shell: cmd
