@@ -89,9 +89,6 @@ jobs:
     name: Deploy
     runs-on: self-hosted
     needs: publish
-    env:
-      HABITTRACKER_DB_PASSWORD: ${{ secrets.HABITTRACKER_DB_PASSWORD }}
-      HABITTRACKER_JWT_SECRET: ${{ secrets.HABITTRACKER_JWT_SECRET }}
     steps:
       - name: Download publish artifacts
         uses: actions/download-artifact@v4
