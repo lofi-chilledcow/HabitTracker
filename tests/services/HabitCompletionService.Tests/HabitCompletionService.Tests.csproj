@@ -24,7 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\services\HabitCompletionService\HabitCompletionService.csproj" />
+    <ProjectReference Include="..\..\..\src\services\HabitCompletionService\HabitCompletionService.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>

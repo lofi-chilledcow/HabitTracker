@@ -24,7 +24,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\services\HabitService\HabitService.csproj" />
+    <ProjectReference Include="..\..\..\src\services\HabitService\HabitService.csproj">
+      <ReferenceOutputAssembly>true</ReferenceOutputAssembly>
+      <SkipGetTargetFrameworkProperties>true</SkipGetTargetFrameworkProperties>
+    </ProjectReference>
   </ItemGroup>
 
 </Project>
