@@ -85,19 +85,13 @@ jobs:
           path: publish\
           retention-days: 1
 
-  deploy:
-    name: Deploy
+  configure:
+    name: Configure
     runs-on: self-hosted
-    needs: publish
+    needs: test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download publish artifacts
-        uses: actions/download-artifact@v4
-        with:
-          name: publish
-          path: publish\
 
       - name: Write .env file
         run: |
@@ -107,6 +101,17 @@ jobs:
           New-Item -ItemType Directory -Force -Path C:\inetpub\HabitTracker | Out-Null
           $env | Set-Content -Path C:\inetpub\HabitTracker\.env -Encoding UTF8
         shell: pwsh
+
+  deploy:
+    name: Deploy
+    runs-on: self-hosted
+    needs: [publish, configure]
+    steps:
+      - name: Download publish artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: publish
+          path: publish\
 
       - name: Deploy AuthService
         run: |
