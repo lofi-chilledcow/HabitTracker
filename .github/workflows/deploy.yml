@@ -96,6 +96,15 @@ jobs:
           name: publish
           path: publish\
 
+      - name: Write .env file
+        run: |
+          $env = Get-Content .env.example
+          $env = $env -replace 'your_password_here', '${{ secrets.HABITTRACKER_DB_PASSWORD }}'
+          $env = $env -replace 'your_32_character_minimum_secret_here', '${{ secrets.HABITTRACKER_JWT_SECRET }}'
+          New-Item -ItemType Directory -Force -Path C:\inetpub\HabitTracker | Out-Null
+          $env | Set-Content -Path C:\inetpub\HabitTracker\.env -Encoding UTF8
+        shell: pwsh
+
       - name: Deploy AuthService
         run: |
           robocopy publish\AuthService C:\inetpub\HabitTracker\AuthService /MIR /NFL /NDL /NJH /NJS
