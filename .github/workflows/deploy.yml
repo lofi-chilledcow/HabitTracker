@@ -106,24 +106,28 @@ jobs:
         run: |
           robocopy publish\AuthService C:\inetpub\HabitTracker\AuthService /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+          exit 0
         shell: powershell
 
       - name: Deploy HabitService
         run: |
           robocopy publish\HabitService C:\inetpub\HabitTracker\HabitService /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+          exit 0
         shell: powershell
 
       - name: Deploy HabitCompletionService
         run: |
           robocopy publish\HabitCompletionService C:\inetpub\HabitTracker\HabitCompletionService /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+          exit 0
         shell: powershell
 
       - name: Deploy ApiGateway
         run: |
           robocopy publish\ApiGateway C:\inetpub\HabitTracker\ApiGateway /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+          exit 0
         shell: powershell
 
       - name: Restart IIS
