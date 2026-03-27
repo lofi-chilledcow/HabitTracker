@@ -90,6 +90,9 @@ jobs:
     runs-on: self-hosted
     needs: publish
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Download publish artifacts
         uses: actions/download-artifact@v4
         with:
