@@ -11,7 +11,7 @@ jobs:
     runs-on: self-hosted
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Build AuthService
         run: dotnet build src/services/AuthService/AuthService.csproj --configuration Release
@@ -35,7 +35,7 @@ jobs:
     needs: build
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Run tests
         run: |
@@ -49,7 +49,7 @@ jobs:
     needs: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Publish AuthService
         run: dotnet publish src/services/AuthService/AuthService.csproj --configuration Release --output publish\AuthService
@@ -68,7 +68,7 @@ jobs:
         shell: cmd
 
       - name: Upload publish artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: publish
           path: publish\
@@ -80,7 +80,7 @@ jobs:
     needs: test
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.2.2
 
       - name: Write .env file
         run: |
@@ -97,7 +97,7 @@ jobs:
     needs: [publish, configure]
     steps:
       - name: Download publish artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v4.6.2
         with:
           name: publish
           path: publish\
