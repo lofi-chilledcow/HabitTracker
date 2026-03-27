@@ -102,6 +102,14 @@ jobs:
           name: publish
           path: publish\
 
+      - name: Stop IIS app pools
+        run: |
+          %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-AuthService"
+          %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-HabitService"
+          %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-HabitCompletionService"
+          %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-ApiGateway"
+        shell: cmd
+
       - name: Deploy AuthService
         run: |
           robocopy publish\AuthService C:\inetpub\HabitTracker\AuthService /MIR /NFL /NDL /NJH /NJS
@@ -130,6 +138,10 @@ jobs:
           exit 0
         shell: powershell
 
-      - name: Restart IIS
-        run: iisreset
+      - name: Start IIS app pools
+        run: |
+          %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-AuthService"
+          %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-HabitService"
+          %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-HabitCompletionService"
+          %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-ApiGateway"
         shell: cmd
