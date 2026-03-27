@@ -1,4 +1,4 @@
-Microsoft Visual Studio Solution File, Format Version 12.00
+﻿Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.5.2.0
 MinimumVisualStudioVersion = 10.0.40219.1
@@ -7,6 +7,12 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{984BB9B3-3FA3-BE33-9484-CAC21695A33C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HabitService", "src\services\HabitService\HabitService.csproj", "{55E866E0-F16F-981B-3E64-16C213AFEB2D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{75D1AD84-CBF5-4FA0-8A3D-F179A6ACA29B}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "services", "services", "{F44B73B6-49C7-44CD-8B13-1A9D302438E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AuthService.Tests", "tests\services\AuthService.Tests\AuthService.Tests.csproj", "{415F9086-9383-42BB-844A-4314BF11DFD7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,6 +24,10 @@ Global
 		{55E866E0-F16F-981B-3E64-16C213AFEB2D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55E866E0-F16F-981B-3E64-16C213AFEB2D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55E866E0-F16F-981B-3E64-16C213AFEB2D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{415F9086-9383-42BB-844A-4314BF11DFD7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{415F9086-9383-42BB-844A-4314BF11DFD7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{415F9086-9383-42BB-844A-4314BF11DFD7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{415F9086-9383-42BB-844A-4314BF11DFD7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -25,6 +35,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{984BB9B3-3FA3-BE33-9484-CAC21695A33C} = {827E0CD3-B72D-47B6-A68D-7590B98EB39B}
 		{55E866E0-F16F-981B-3E64-16C213AFEB2D} = {984BB9B3-3FA3-BE33-9484-CAC21695A33C}
+		{F44B73B6-49C7-44CD-8B13-1A9D302438E4} = {75D1AD84-CBF5-4FA0-8A3D-F179A6ACA29B}
+		{415F9086-9383-42BB-844A-4314BF11DFD7} = {F44B73B6-49C7-44CD-8B13-1A9D302438E4}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {99476541-9D8C-466E-9B94-24CF127767F7}
