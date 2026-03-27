@@ -39,9 +39,10 @@ jobs:
 
       - name: Run tests
         run: |
-          Write-Host "No tests yet - skipping."
-          exit 0
-        shell: powershell
+          dotnet test tests/services/AuthService.Tests/AuthService.Tests.csproj --configuration Release
+          dotnet test tests/services/HabitService.Tests/HabitService.Tests.csproj --configuration Release
+          dotnet test tests/services/HabitCompletionService.Tests/HabitCompletionService.Tests.csproj --configuration Release
+        shell: cmd
 
   publish:
     name: Publish
