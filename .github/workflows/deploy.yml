@@ -100,7 +100,7 @@ jobs:
           $env = $env -replace 'your_32_character_minimum_secret_here', '${{ secrets.HABITTRACKER_JWT_SECRET }}'
           New-Item -ItemType Directory -Force -Path C:\inetpub\HabitTracker | Out-Null
           $env | Set-Content -Path C:\inetpub\HabitTracker\.env -Encoding UTF8
-        shell: pwsh
+        shell: powershell
 
   deploy:
     name: Deploy
@@ -117,25 +117,25 @@ jobs:
         run: |
           robocopy publish\AuthService C:\inetpub\HabitTracker\AuthService /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
-        shell: pwsh
+        shell: powershell
 
       - name: Deploy HabitService
         run: |
           robocopy publish\HabitService C:\inetpub\HabitTracker\HabitService /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
-        shell: pwsh
+        shell: powershell
 
       - name: Deploy HabitCompletionService
         run: |
           robocopy publish\HabitCompletionService C:\inetpub\HabitTracker\HabitCompletionService /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
-        shell: pwsh
+        shell: powershell
 
       - name: Deploy ApiGateway
         run: |
           robocopy publish\ApiGateway C:\inetpub\HabitTracker\ApiGateway /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
-        shell: pwsh
+        shell: powershell
 
       - name: Restart IIS
         run: iisreset
