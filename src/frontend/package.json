@@ -1,0 +1,12 @@
+{
+  "name": "habittracker-frontend",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "start:all": "concurrently --names \"shell,auth,habits,admin,competition\" --prefix-colors \"blue,green,yellow,magenta,cyan\" \"npm run dev:full --prefix shell\" \"npm run dev:full --prefix mfe-auth\" \"npm run dev:full --prefix mfe-habits\" \"npm run dev:full --prefix mfe-admin\" \"npm run dev:full --prefix mfe-competition\"",
+    "build:all": "concurrently --names \"shell,auth,habits,admin,competition\" --prefix-colors \"blue,green,yellow,magenta,cyan\" \"npm run build --prefix shell\" \"npm run build --prefix mfe-auth\" \"npm run build --prefix mfe-habits\" \"npm run build --prefix mfe-admin\" \"npm run build --prefix mfe-competition\""
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}
