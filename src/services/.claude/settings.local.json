@@ -10,7 +10,17 @@
       "Bash(cmd //c \"taskkill /PID 61344 /F\")",
       "Bash(dotnet new:*)",
       "Bash(git ls-tree:*)",
-      "Bash(git:*)"
+      "Bash(git:*)",
+      "Bash(dotnet test:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(for app:*)",
+      "Bash(do)",
+      "Bash(dir=\"/c/Users/fanhu/git/HabitTracker/src/frontend/$app/src\")",
+      "Bash(mkdir -p \"$dir\")",
+      "Bash(__NEW_LINE_4a9e0bcda8f179cc__ cat:*)"
     ]
   }
 }
