@@ -128,13 +128,13 @@ Gate:
 
 ## Phase 4: HabitService Rewrite
 
-- [ ] Add current-user helper.
-- [ ] Create habit using JWT user id.
-- [ ] List only current user's active habits.
-- [ ] Get habit by `Id` and current `UserId`.
-- [ ] Update habit by `Id` and current `UserId`.
-- [ ] Archive habit with `IsActive = false`.
-- [ ] Toggle public/private for owned habit.
+- [x] Add current-user helper.
+- [x] Create habit using JWT user id.
+- [x] List only current user's active habits.
+- [x] Get habit by `Id` and current `UserId`.
+- [x] Update habit by `Id` and current `UserId`.
+- [x] Archive habit with `IsActive = false`.
+- [x] Toggle public/private for owned habit.
 - [ ] Validate habit name.
 - [ ] Validate frequency.
 - [ ] Validate weekly target days.
@@ -142,48 +142,48 @@ Gate:
 
 Tests:
 
-- [ ] Create habit stores current user id.
-- [ ] List habits excludes other users' habits.
-- [ ] List habits excludes archived habits.
-- [ ] Get rejects another user's habit.
-- [ ] Update rejects another user's habit.
-- [ ] Archive affects only current user's habit.
-- [ ] Public/private toggle affects only current user's habit.
+- [x] Create habit stores current user id.
+- [x] List habits excludes other users' habits.
+- [x] List habits excludes archived habits.
+- [x] Get rejects another user's habit.
+- [x] Update rejects another user's habit.
+- [x] Archive affects only current user's habit.
+- [x] Public/private toggle affects only current user's habit.
 - [ ] Invalid frequency is rejected.
 - [ ] Weekly target days are validated.
 
 Gate:
 
-- [ ] HabitService builds.
-- [ ] Habit ownership tests pass.
-- [ ] Habit CRUD contracts are final enough for frontend.
+- [x] HabitService builds.
+- [x] Habit ownership tests pass.
+- [x] Habit CRUD contracts are final enough for frontend.
 
 ## Phase 5: Completion Flow
 
-- [ ] Move completion commands/queries into HabitService if service is merged.
-- [ ] Implement `GET /api/completions/today`.
-- [ ] Implement `GET /api/habits/{habitId}/completions`.
-- [ ] Implement idempotent `PUT /api/habits/{habitId}/completions/{date}`.
-- [ ] Implement `DELETE /api/habits/{habitId}/completions/{date}`.
-- [ ] Ensure completion write verifies habit ownership.
-- [ ] Reject completion for inactive habits.
-- [ ] Ensure duplicate same habit/date cannot create two rows.
+- [x] Move completion commands/queries into HabitService if service is merged.
+- [x] Implement `GET /api/completions/today`.
+- [x] Implement `GET /api/habits/{habitId}/completions`.
+- [x] Implement idempotent `PUT /api/habits/{habitId}/completions/{date}`.
+- [x] Implement `DELETE /api/habits/{habitId}/completions/{date}`.
+- [x] Ensure completion write verifies habit ownership.
+- [x] Reject completion for inactive habits.
+- [x] Ensure duplicate same habit/date cannot create two rows.
 
 Tests:
 
-- [ ] Mark completion succeeds for owned active habit.
-- [ ] Mark completion rejects another user's habit.
-- [ ] Mark completion rejects inactive habit.
-- [ ] Mark completion is idempotent for same habit/date.
-- [ ] Unique constraint prevents duplicate rows.
-- [ ] Unmark deletes only current user's completion.
-- [ ] Today endpoint returns only current user's completions.
-- [ ] History endpoint rejects another user's habit.
+- [x] Mark completion succeeds for owned active habit.
+- [x] Mark completion rejects another user's habit.
+- [x] Mark completion rejects inactive habit.
+- [x] Mark completion is idempotent for same habit/date.
+- [x] Unique constraint prevents duplicate rows.
+- [x] Unmark deletes only current user's completion.
+- [x] Today endpoint returns only current user's completions.
+- [x] History endpoint rejects another user's habit.
 
 Gate:
 
-- [ ] Completion tests pass.
-- [ ] Daily check-in backend contract is ready.
+- [x] Completion tests pass.
+- [x] Daily check-in backend contract is ready.
 
 ## Phase 6: Competition And Admin Backend
 

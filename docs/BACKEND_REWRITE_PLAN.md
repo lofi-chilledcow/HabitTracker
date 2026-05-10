@@ -624,11 +624,22 @@ Gate:
 
 ### Slice 5: Completions
 
-1. Move completion endpoints into HabitService.
-2. Implement idempotent mark-complete with `PUT`.
-3. Implement unmark.
-4. Implement today's completions.
-5. Implement habit completion history.
+Implemented in HabitService:
+
+| Method | Path | Purpose |
+| --- | --- | --- |
+| GET | `/api/completions/today` | Return current user's completions for the current UTC date |
+| GET | `/api/habits/{habitId}/completions` | Return completion history for an owned habit |
+| PUT | `/api/habits/{habitId}/completions/{date}` | Idempotently mark an owned active habit complete for a date |
+| DELETE | `/api/habits/{habitId}/completions/{date}` | Idempotently unmark an owned active habit for a date |
+
+Rules:
+
+- `date` is a `DateOnly` route value in `yyyy-MM-dd` form.
+- Completion writes verify habit ownership.
+- Completion writes reject inactive habits.
+- Duplicate same habit/date writes update the existing row instead of inserting a duplicate.
+- Delete returns `204` if the owned active habit exists, even when the completion was already missing.
 
 Gate:
 
