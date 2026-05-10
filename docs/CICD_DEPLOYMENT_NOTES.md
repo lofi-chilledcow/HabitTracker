@@ -36,21 +36,18 @@ Current backend services in pipeline:
 
 - AuthService
 - HabitService
-- HabitCompletionService
 - ApiGateway
 
 Current deployed IIS app pools:
 
 - `HabitTracker-AuthService`
 - `HabitTracker-HabitService`
-- `HabitTracker-HabitCompletionService`
 - `HabitTracker-ApiGateway`
 
 Current deployment paths:
 
 - `C:\inetpub\HabitTracker\AuthService`
 - `C:\inetpub\HabitTracker\HabitService`
-- `C:\inetpub\HabitTracker\HabitCompletionService`
 - `C:\inetpub\HabitTracker\ApiGateway`
 
 Secrets used:
@@ -109,9 +106,9 @@ It does not:
 
 This is fine for the current backend-focused pipeline, but the frontend rewrite will need pipeline support before production deployment.
 
-### HabitCompletionService Is In The Pipeline
+### HabitCompletionService Was Removed From The Pipeline
 
-The backend rewrite plan recommends merging completions into HabitService.
+Completions are merged into HabitService.
 
 Current route status:
 
@@ -119,20 +116,16 @@ Current route status:
 - ApiGateway now routes `/api/competition/{**catch-all}` to HabitService on `http://localhost:5110`.
 - ApiGateway now routes `/api/admin/{**catch-all}` to AuthService on `http://localhost:5039`.
 - The old `/api/habit-completions/{**catch-all}` gateway route has been removed from ApiGateway config.
-- CI/CD still builds, tests, publishes, and deploys HabitCompletionService until the dedicated CI/CD cleanup phase.
-- Local IIS may still have `HabitTracker-HabitCompletionService`; do not remove it until the CI/CD/IIS update step.
+- CI/CD no longer builds, tests, publishes, or deploys HabitCompletionService.
+- Local IIS may still have the old `HabitTracker-HabitCompletionService` app pool/site/folder. It can be removed manually from IIS because ApiGateway no longer routes to it.
 
-If that decision is implemented, the pipeline must eventually remove:
+Removed from pipeline:
 
 - HabitCompletionService build step,
 - HabitCompletionService test step,
 - HabitCompletionService publish step,
 - HabitCompletionService deploy step,
 - HabitCompletionService app pool stop/start commands.
-
-Do not remove those until the service is actually removed from the solution and IIS.
-
-Because the local app is disposable, removing the old IIS app pool/site/folder is acceptable once the rewritten service layout is ready.
 
 ### No Database Migration Step
 

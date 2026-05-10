@@ -214,14 +214,14 @@ Gate:
 - [x] Route `/api/completions/**` to HabitService if completions are merged.
 - [x] Route `/api/competition/**` to HabitService.
 - [x] Route `/api/admin/**` to owning service or split clearly.
-- [ ] Remove old HabitCompletionService route only after service is actually removed.
-- [ ] Verify CORS for frontend dev ports.
+- [x] Remove old HabitCompletionService route only after service is actually removed.
+- [x] Verify CORS for frontend dev ports.
 
 IIS-impact reminder:
 
-- [ ] Tell owner before removing or merging a service.
-- [ ] Confirm whether local IIS still has `HabitTracker-HabitCompletionService`.
-- [ ] Confirm whether app pool/site/folder cleanup is needed.
+- [x] Tell owner before removing or merging a service.
+- [x] Confirm whether local IIS still has `HabitTracker-HabitCompletionService`.
+- [x] Confirm whether app pool/site/folder cleanup is needed.
 - [x] Confirm gateway route changes before deployment.
 
 Gate:
@@ -330,11 +330,11 @@ Reminder:
 
 Possible backend CI/CD updates:
 
-- [ ] Remove HabitCompletionService build/test/publish/deploy if service is removed.
-- [ ] Update test project list.
-- [ ] Update publish outputs.
-- [ ] Update app pool stop/start commands.
-- [ ] Update gateway deployment if routes changed.
+- [x] Remove HabitCompletionService build/test/publish/deploy if service is removed.
+- [x] Update test project list.
+- [x] Update publish outputs.
+- [x] Update app pool stop/start commands.
+- [x] Update gateway deployment if routes changed.
 
 Possible frontend CI/CD updates:
 
@@ -357,7 +357,7 @@ Gate:
 - [ ] Verify AuthService site/app pool.
 - [ ] Verify HabitService site/app pool.
 - [ ] Verify ApiGateway site/app pool.
-- [ ] Verify HabitCompletionService is either still valid or intentionally removed.
+- [x] Verify HabitCompletionService is either still valid or intentionally removed.
 - [ ] Verify frontend IIS site if added.
 - [ ] Verify `.env` exists at expected path.
 - [ ] Verify gateway routes.
@@ -376,12 +376,12 @@ Smoke tests:
 
 ## Done Criteria For Rewrite
 
-- [ ] Database schema matches documentation.
-- [ ] Backend ownership tests pass.
-- [ ] Backend role tests pass.
-- [ ] Gateway routes match docs.
+- [x] Database schema matches documentation.
+- [x] Backend ownership tests pass.
+- [x] Backend role tests pass.
+- [x] Gateway routes match docs.
 - [ ] Frontend uses shell-owned auth.
 - [ ] Frontend calls gateway only.
-- [ ] CI/CD matches actual service/frontend structure.
+- [x] CI/CD matches actual service/frontend structure.
 - [ ] IIS is aligned with deployed services.
 - [ ] End-to-end habit flow works.
