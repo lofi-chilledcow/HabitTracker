@@ -37,6 +37,15 @@ async function parseError(response: Response) {
   try {
     const body = await response.json()
     if (typeof body?.error === 'string') return body.error
+    if (body?.errors && typeof body.errors === 'object') {
+      const messages = Object.entries(body.errors)
+        .flatMap(([field, value]) => {
+          if (Array.isArray(value)) return value.map((message) => `${field}: ${message}`)
+          if (typeof value === 'string') return [`${field}: ${value}`]
+          return []
+        })
+      if (messages.length > 0) return messages.join(' ')
+    }
     if (typeof body?.title === 'string') return body.title
   } catch {
     return response.statusText

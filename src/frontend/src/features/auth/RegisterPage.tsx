@@ -35,6 +35,7 @@ export function RegisterPage() {
         <label>
           <span>Username</span>
           <input value={username} onChange={(event) => setUsername(event.target.value)} required autoFocus />
+          <small>At least 3 characters, no spaces.</small>
         </label>
         <label>
           <span>Email</span>
@@ -43,10 +44,12 @@ export function RegisterPage() {
         <label>
           <span>Phone</span>
           <input value={phoneNumber} onChange={(event) => setPhoneNumber(event.target.value)} />
+          <small>Optional. Use at least 10 digits if provided.</small>
         </label>
         <label>
           <span>Password</span>
           <input type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+          <small>At least 8 characters with one uppercase letter and one number.</small>
         </label>
         {error ? <p className="form-error">{error}</p> : null}
         <button className="primary-button" type="submit" disabled={isSubmitting}>

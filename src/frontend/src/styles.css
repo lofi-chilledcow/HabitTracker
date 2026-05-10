@@ -81,6 +81,12 @@ a {
   font-weight: 650;
 }
 
+.form small {
+  color: #657268;
+  font-size: 12px;
+  font-weight: 500;
+}
+
 .form input,
 .form select,
 .form textarea {
