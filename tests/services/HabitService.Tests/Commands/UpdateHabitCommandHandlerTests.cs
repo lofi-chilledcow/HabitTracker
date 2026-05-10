@@ -67,4 +67,22 @@ public class UpdateHabitCommandHandlerTests
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task Handle_InvalidFrequency_ThrowsArgumentException()
+    {
+        using var db = CreateDb();
+        var habit = new Habit { UserId = UserId, Name = "Exercise", Frequency = "daily" };
+        db.Habits.Add(habit);
+        await db.SaveChangesAsync();
+
+        var handler = new UpdateHabitCommandHandler(db);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(
+                new UpdateHabitCommand(habit.Id, UserId, "Exercise", null, "monthly", null, false),
+                CancellationToken.None));
+
+        Assert.Equal("frequency", ex.ParamName);
+    }
 }

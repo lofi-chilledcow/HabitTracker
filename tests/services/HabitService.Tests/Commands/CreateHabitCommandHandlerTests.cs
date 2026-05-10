@@ -47,4 +47,34 @@ public class CreateHabitCommandHandlerTests
         Assert.Equal(1, await db.Habits.CountAsync());
         Assert.Equal(UserId, (await db.Habits.SingleAsync()).UserId);
     }
+
+    [Theory]
+    [InlineData("", "daily", null, "name")]
+    [InlineData("Read", "monthly", null, "frequency")]
+    [InlineData("Read", "weekly", null, "targetDaysPerWeek")]
+    [InlineData("Read", "weekly", 8, "targetDaysPerWeek")]
+    [InlineData("Read", "daily", 1, "targetDaysPerWeek")]
+    public async Task Handle_InvalidCommand_ThrowsArgumentException(
+        string name,
+        string frequency,
+        int? targetDaysPerWeek,
+        string parameterName)
+    {
+        using var db = CreateDb();
+        var handler = new CreateHabitCommandHandler(db);
+
+        var ex = await Assert.ThrowsAsync<ArgumentException>(() =>
+            handler.Handle(
+                new CreateHabitCommand(
+                    UserId,
+                    name,
+                    null,
+                    frequency,
+                    targetDaysPerWeek is null ? null : (byte)targetDaysPerWeek.Value,
+                    false),
+                CancellationToken.None));
+
+        Assert.Equal(parameterName, ex.ParamName);
+        Assert.Equal(0, await db.Habits.CountAsync());
+    }
 }

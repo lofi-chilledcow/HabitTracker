@@ -1,6 +1,7 @@
 using HabitService.Data;
 using HabitService.DTOs;
 using HabitService.Models;
+using HabitService.Validation;
 using MediatR;
 
 namespace HabitService.Commands.Handlers;
@@ -9,12 +10,14 @@ public class CreateHabitCommandHandler(HabitDbContext db) : IRequestHandler<Crea
 {
     public async Task<HabitDto> Handle(CreateHabitCommand request, CancellationToken cancellationToken)
     {
+        HabitRules.Validate(request.Name, request.Frequency, request.TargetDaysPerWeek);
+
         var habit = new Habit
         {
             UserId = request.UserId,
-            Name = request.Name,
+            Name = request.Name.Trim(),
             Description = request.Description,
-            Frequency = request.Frequency,
+            Frequency = request.Frequency.ToLowerInvariant(),
             TargetDaysPerWeek = request.TargetDaysPerWeek,
             IsPublic = request.IsPublic
         };

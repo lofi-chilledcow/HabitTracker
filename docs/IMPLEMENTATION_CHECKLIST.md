@@ -135,9 +135,9 @@ Gate:
 - [x] Update habit by `Id` and current `UserId`.
 - [x] Archive habit with `IsActive = false`.
 - [x] Toggle public/private for owned habit.
-- [ ] Validate habit name.
-- [ ] Validate frequency.
-- [ ] Validate weekly target days.
+- [x] Validate habit name.
+- [x] Validate frequency.
+- [x] Validate weekly target days.
 - [ ] Add/update HabitService OpenAPI docs.
 
 Tests:
@@ -149,8 +149,8 @@ Tests:
 - [x] Update rejects another user's habit.
 - [x] Archive affects only current user's habit.
 - [x] Public/private toggle affects only current user's habit.
-- [ ] Invalid frequency is rejected.
-- [ ] Weekly target days are validated.
+- [x] Invalid frequency is rejected.
+- [x] Weekly target days are validated.
 
 Gate:
 
@@ -187,24 +187,24 @@ Gate:
 
 ## Phase 6: Competition And Admin Backend
 
-- [ ] Implement `GET /api/competition/leaderboard`.
-- [ ] Ensure competition only returns public active habits.
-- [ ] Exclude private habits.
-- [ ] Exclude archived habits.
+- [x] Implement `GET /api/competition/leaderboard`.
+- [x] Ensure competition only returns public active habits.
+- [x] Exclude private habits.
+- [x] Exclude archived habits.
 - [ ] Add admin dashboard summary endpoint if needed.
 - [ ] Add admin health endpoint if needed.
 - [ ] Keep monitoring DB work optional until admin UI needs it.
 
 Tests:
 
-- [ ] Leaderboard includes public active habits.
-- [ ] Leaderboard excludes private habits.
-- [ ] Leaderboard excludes archived habits.
+- [x] Leaderboard includes public active habits.
+- [x] Leaderboard excludes private habits.
+- [x] Leaderboard excludes archived habits.
 - [ ] Admin summary endpoints require admin role.
 
 Gate:
 
-- [ ] Competition data does not leak private habits.
+- [x] Competition data does not leak private habits.
 - [ ] Admin backend is server-protected.
 
 ## Phase 7: ApiGateway

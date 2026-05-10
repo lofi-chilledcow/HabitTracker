@@ -46,10 +46,17 @@ public class HabitsController(IMediator mediator) : ControllerBase
         if (User.GetCurrentUserId() is not Guid userId)
             return Unauthorized();
 
-        var result = await mediator.Send(
-            new CreateHabitCommand(userId, dto.Name, dto.Description, dto.Frequency, dto.TargetDaysPerWeek, dto.IsPublic),
-            cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await mediator.Send(
+                new CreateHabitCommand(userId, dto.Name, dto.Description, dto.Frequency, dto.TargetDaysPerWeek, dto.IsPublic),
+                cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpPut("{id:guid}")]
@@ -61,10 +68,17 @@ public class HabitsController(IMediator mediator) : ControllerBase
         if (User.GetCurrentUserId() is not Guid userId)
             return Unauthorized();
 
-        var result = await mediator.Send(
-            new UpdateHabitCommand(id, userId, dto.Name, dto.Description, dto.Frequency, dto.TargetDaysPerWeek, dto.IsPublic),
-            cancellationToken);
-        return result is null ? NotFound() : Ok(result);
+        try
+        {
+            var result = await mediator.Send(
+                new UpdateHabitCommand(id, userId, dto.Name, dto.Description, dto.Frequency, dto.TargetDaysPerWeek, dto.IsPublic),
+                cancellationToken);
+            return result is null ? NotFound() : Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 
     [HttpDelete("{id:guid}")]

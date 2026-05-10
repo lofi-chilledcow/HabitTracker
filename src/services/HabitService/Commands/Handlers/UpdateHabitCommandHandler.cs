@@ -1,5 +1,6 @@
 using HabitService.Data;
 using HabitService.DTOs;
+using HabitService.Validation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 
@@ -9,14 +10,16 @@ public class UpdateHabitCommandHandler(HabitDbContext db) : IRequestHandler<Upda
 {
     public async Task<HabitDto?> Handle(UpdateHabitCommand request, CancellationToken cancellationToken)
     {
+        HabitRules.Validate(request.Name, request.Frequency, request.TargetDaysPerWeek);
+
         var habit = await db.Habits.FirstOrDefaultAsync(
             h => h.Id == request.Id && h.UserId == request.UserId,
             cancellationToken);
         if (habit is null) return null;
 
-        habit.Name = request.Name;
+        habit.Name = request.Name.Trim();
         habit.Description = request.Description;
-        habit.Frequency = request.Frequency;
+        habit.Frequency = request.Frequency.ToLowerInvariant();
         habit.TargetDaysPerWeek = request.TargetDaysPerWeek;
         habit.IsPublic = request.IsPublic;
         habit.UpdatedAt = DateTime.UtcNow;
