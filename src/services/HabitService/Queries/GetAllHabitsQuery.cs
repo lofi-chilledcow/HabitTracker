@@ -3,4 +3,4 @@ using MediatR;
 
 namespace HabitService.Queries;
 
-public record GetAllHabitsQuery : IRequest<IEnumerable<HabitDto>>;
+public record GetAllHabitsQuery(Guid UserId) : IRequest<IEnumerable<HabitDto>>;

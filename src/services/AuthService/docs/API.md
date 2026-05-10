@@ -13,8 +13,10 @@ Authentication service for HabitTracker. Handles user registration, login, and J
 | Method | Path | Description |
 |--------|------|-------------|
 | POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Log in and receive tokens |
+| POST | `/api/auth/login` | Log in with email, username, or phone and receive tokens |
 | POST | `/api/auth/refresh` | Exchange a refresh token for a new access token |
+| POST | `/api/auth/logout` | Revoke a refresh token |
+| GET | `/api/auth/me` | Return the current user profile |
 
 ---
 
@@ -28,7 +30,8 @@ Creates a new user account with the default `User` role. Password is hashed with
 {
   "username": "johndoe",
   "email": "john@example.com",
-  "password": "Secret123"
+  "password": "Secret123",
+  "phoneNumber": "(555) 123-4567"
 }
 ```
 
@@ -37,6 +40,7 @@ Creates a new user account with the default `User` role. Password is hashed with
 | `username` | string | Required. Min 3 characters. No spaces. |
 | `email` | string | Required. Valid email format. |
 | `password` | string | Required. Min 8 chars. At least one uppercase letter. At least one number. |
+| `phoneNumber` | string | Optional. Must include at least 10 digits. Stored as digits only. |
 
 ### Responses
 
@@ -46,8 +50,13 @@ Creates a new user account with the default `User` role. Password is hashed with
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu...",
-  "username": "johndoe",
-  "email": "john@example.com"
+  "user": {
+    "id": "7e4c5f0a-1a90-4d6e-bff3-7d274b91a400",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "phoneNumber": "5551234567",
+    "role": "User"
+  }
 }
 ```
 
@@ -69,7 +78,7 @@ Creates a new user account with the default `User` role. Password is hashed with
 }
 ```
 
-#### `409 Conflict` — Duplicate email or username
+#### `409 Conflict` — Duplicate email, username, or phone
 
 ```json
 { "error": "Email is already registered." }
@@ -79,24 +88,28 @@ Creates a new user account with the default `User` role. Password is hashed with
 { "error": "Username is already taken." }
 ```
 
+```json
+{ "error": "Phone number is already registered." }
+```
+
 ---
 
 ## POST `/api/auth/login`
 
-Authenticates an existing user and issues a new access token and refresh token.
+Authenticates an existing user by email, username, or phone number and issues a new access token and refresh token.
 
 ### Request body
 
 ```json
 {
-  "email": "john@example.com",
+  "identifier": "john@example.com",
   "password": "Secret123"
 }
 ```
 
 | Field | Type | Rules |
 |-------|------|-------|
-| `email` | string | Required. Valid email format. |
+| `identifier` | string | Required. Email, username, or phone number. |
 | `password` | string | Required. |
 
 ### Responses
@@ -107,8 +120,13 @@ Authenticates an existing user and issues a new access token and refresh token.
 {
   "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu...",
-  "username": "johndoe",
-  "email": "john@example.com"
+  "user": {
+    "id": "7e4c5f0a-1a90-4d6e-bff3-7d274b91a400",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "phoneNumber": "5551234567",
+    "role": "User"
+  }
 }
 ```
 
@@ -120,7 +138,7 @@ Authenticates an existing user and issues a new access token and refresh token.
   "title": "One or more validation errors occurred.",
   "status": 400,
   "errors": {
-    "Email": ["Email must be a valid email address."]
+    "Identifier": ["Email, username, or phone number is required."]
   }
 }
 ```
@@ -128,7 +146,7 @@ Authenticates an existing user and issues a new access token and refresh token.
 #### `401 Unauthorized` — Invalid credentials
 
 ```json
-{ "error": "Invalid email or password." }
+{ "error": "Invalid login or password." }
 ```
 
 > Response is deliberately vague to prevent user enumeration.

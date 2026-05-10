@@ -27,34 +27,55 @@ public class RegisterCommandHandler : IRequestHandler<RegisterCommand, AuthRespo
 
     public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
-        if (await _users.ExistsByEmailAsync(request.Email, cancellationToken))
+        var email = request.Email.Trim().ToLowerInvariant();
+        var username = request.Username.Trim();
+        var phoneNumber = NormalizePhoneNumber(request.PhoneNumber);
+
+        if (await _users.ExistsByEmailAsync(email, cancellationToken))
             throw new InvalidOperationException("Email is already registered.");
 
-        if (await _users.ExistsByUsernameAsync(request.Username, cancellationToken))
+        if (await _users.ExistsByUsernameAsync(username, cancellationToken))
             throw new InvalidOperationException("Username is already taken.");
+
+        if (phoneNumber != null && await _users.ExistsByPhoneNumberAsync(phoneNumber, cancellationToken))
+            throw new InvalidOperationException("Phone number is already registered.");
 
         var role = await _roles.GetByNameAsync("User", cancellationToken)
             ?? throw new InvalidOperationException("Default role not found.");
 
         var user = new User
         {
-            Username = request.Username,
-            Email = request.Email,
+            Username = username,
+            Email = email,
+            PhoneNumber = phoneNumber,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
             RoleId = role.Id
         };
 
         await _users.CreateAsync(user, cancellationToken);
 
+        var refreshTokenValue = _jwt.GenerateRefreshToken();
         var refreshToken = new RefreshToken
         {
-            Token = _jwt.GenerateRefreshToken(),
+            TokenHash = _jwt.HashRefreshToken(refreshTokenValue),
             UserId = user.Id,
             ExpiresAt = _jwt.GetRefreshTokenExpiry()
         };
 
         await _refreshTokens.CreateAsync(refreshToken, cancellationToken);
 
-        return new AuthResponse(_jwt.Generate(user, role.Name), refreshToken.Token, user.Username, user.Email);
+        return new AuthResponse(
+            _jwt.Generate(user, role.Name),
+            refreshTokenValue,
+            new UserProfileDto(user.Id, user.Username, user.Email, user.PhoneNumber, role.Name));
+    }
+
+    private static string? NormalizePhoneNumber(string? phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return null;
+
+        var digits = new string(phoneNumber.Where(char.IsDigit).ToArray());
+        return digits.Length == 0 ? null : digits;
     }
 }

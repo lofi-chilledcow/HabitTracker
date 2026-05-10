@@ -32,7 +32,7 @@ namespace HabitService.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("datetime2")
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -40,20 +40,100 @@ namespace HabitService.Migrations
 
                     b.Property<string>("Frequency")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(true);
+
+                    b.Property<bool>("IsPublic")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bit")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<byte?>("TargetDaysPerWeek")
+                        .HasColumnType("tinyint");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Habits");
+                    b.HasIndex("IsPublic", "IsActive");
+
+                    b.HasIndex("UserId", "IsActive");
+
+                    b.ToTable("Habits", "habit", t =>
+                        {
+                            t.HasCheckConstraint("CK_Habits_Frequency", "[Frequency] IN ('daily', 'weekly')");
+
+                            t.HasCheckConstraint("CK_Habits_TargetDaysPerWeek", "[TargetDaysPerWeek] IS NULL OR ([TargetDaysPerWeek] >= 1 AND [TargetDaysPerWeek] <= 7)");
+                        });
+                });
+
+            modelBuilder.Entity("HabitService.Models.HabitCompletion", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier")
+                        .HasDefaultValueSql("NEWSEQUENTIALID()");
+
+                    b.Property<DateOnly>("CompletedDate")
+                        .HasColumnType("date");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("datetime2")
+                        .HasDefaultValueSql("SYSUTCDATETIME()");
+
+                    b.Property<Guid>("HabitId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HabitId");
+
+                    b.HasIndex("HabitId", "CompletedDate")
+                        .IsUnique();
+
+                    b.HasIndex("UserId", "CompletedDate");
+
+                    b.ToTable("HabitCompletions", "habit");
+                });
+
+            modelBuilder.Entity("HabitService.Models.HabitCompletion", b =>
+                {
+                    b.HasOne("HabitService.Models.Habit", "Habit")
+                        .WithMany("Completions")
+                        .HasForeignKey("HabitId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Habit");
+                });
+
+            modelBuilder.Entity("HabitService.Models.Habit", b =>
+                {
+                    b.Navigation("Completions");
                 });
 #pragma warning restore 612, 618
         }

@@ -8,10 +8,13 @@ public class DeleteHabitCommandHandler(HabitDbContext db) : IRequestHandler<Dele
 {
     public async Task<bool> Handle(DeleteHabitCommand request, CancellationToken cancellationToken)
     {
-        var habit = await db.Habits.FirstOrDefaultAsync(h => h.Id == request.Id, cancellationToken);
+        var habit = await db.Habits.FirstOrDefaultAsync(
+            h => h.Id == request.Id && h.UserId == request.UserId,
+            cancellationToken);
         if (habit is null) return false;
 
-        db.Habits.Remove(habit);
+        habit.IsActive = false;
+        habit.UpdatedAt = DateTime.UtcNow;
         await db.SaveChangesAsync(cancellationToken);
         return true;
     }

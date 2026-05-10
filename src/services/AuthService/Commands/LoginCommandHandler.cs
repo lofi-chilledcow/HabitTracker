@@ -21,20 +21,24 @@ public class LoginCommandHandler : IRequestHandler<LoginCommand, AuthResponse>
 
     public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
-        var user = await _users.GetByEmailWithRoleAsync(request.Email, cancellationToken);
+        var user = await _users.GetByLoginIdentifierWithRoleAsync(request.Identifier, cancellationToken);
 
-        if (user is null || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
-            throw new UnauthorizedAccessException("Invalid email or password.");
+        if (user is null || !user.IsActive || !BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash))
+            throw new UnauthorizedAccessException("Invalid login or password.");
 
+        var refreshTokenValue = _jwt.GenerateRefreshToken();
         var refreshToken = new RefreshToken
         {
-            Token = _jwt.GenerateRefreshToken(),
+            TokenHash = _jwt.HashRefreshToken(refreshTokenValue),
             UserId = user.Id,
             ExpiresAt = _jwt.GetRefreshTokenExpiry()
         };
 
         await _refreshTokens.CreateAsync(refreshToken, cancellationToken);
 
-        return new AuthResponse(_jwt.Generate(user, user.Role.Name), refreshToken.Token, user.Username, user.Email);
+        return new AuthResponse(
+            _jwt.Generate(user, user.Role.Name),
+            refreshTokenValue,
+            new UserProfileDto(user.Id, user.Username, user.Email, user.PhoneNumber, user.Role.Name));
     }
 }

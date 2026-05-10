@@ -8,6 +8,8 @@ namespace HabitService.Tests.Commands;
 
 public class CreateHabitCommandHandlerTests
 {
+    private static readonly Guid UserId = Guid.NewGuid();
+
     private static HabitDbContext CreateDb() =>
         new(new DbContextOptionsBuilder<HabitDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -20,14 +22,15 @@ public class CreateHabitCommandHandlerTests
         var handler = new CreateHabitCommandHandler(db);
 
         var result = await handler.Handle(
-            new CreateHabitCommand("Exercise", "Morning run", "Daily"),
+            new CreateHabitCommand(UserId, "Exercise", "Morning run", "daily", null, true),
             CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.NotEqual(Guid.Empty, result.Id);
         Assert.Equal("Exercise", result.Name);
         Assert.Equal("Morning run", result.Description);
-        Assert.Equal("Daily", result.Frequency);
+        Assert.Equal("daily", result.Frequency);
+        Assert.True(result.IsPublic);
         Assert.True(result.IsActive);
     }
 
@@ -38,9 +41,10 @@ public class CreateHabitCommandHandlerTests
         var handler = new CreateHabitCommandHandler(db);
 
         await handler.Handle(
-            new CreateHabitCommand("Read", null, "Daily"),
+            new CreateHabitCommand(UserId, "Read", null, "daily", null, false),
             CancellationToken.None);
 
         Assert.Equal(1, await db.Habits.CountAsync());
+        Assert.Equal(UserId, (await db.Habits.SingleAsync()).UserId);
     }
 }

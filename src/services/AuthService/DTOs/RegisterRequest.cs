@@ -1,3 +1,3 @@
 namespace AuthService.DTOs;
 
-public record RegisterRequest(string Username, string Email, string Password);
+public record RegisterRequest(string Username, string Email, string Password, string? PhoneNumber = null);

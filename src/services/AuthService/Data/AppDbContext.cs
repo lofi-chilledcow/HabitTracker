@@ -13,11 +13,15 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema("auth");
+
         modelBuilder.Entity<Role>(entity =>
         {
             entity.HasKey(r => r.Id);
+            entity.HasIndex(r => r.Name).IsUnique();
             entity.Property(r => r.Name).HasMaxLength(100).IsRequired();
             entity.Property(r => r.Description).HasMaxLength(500);
+            entity.Property(r => r.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
         });
 
         modelBuilder.Entity<User>(entity =>
@@ -25,9 +29,14 @@ public class AppDbContext : DbContext
             entity.HasKey(u => u.Id);
             entity.HasIndex(u => u.Email).IsUnique();
             entity.HasIndex(u => u.Username).IsUnique();
+            entity.HasIndex(u => u.PhoneNumber).IsUnique().HasFilter("[PhoneNumber] IS NOT NULL");
             entity.Property(u => u.Username).HasMaxLength(100).IsRequired();
             entity.Property(u => u.Email).HasMaxLength(255).IsRequired();
+            entity.Property(u => u.PhoneNumber).HasMaxLength(32);
             entity.Property(u => u.PasswordHash).IsRequired();
+            entity.Property(u => u.IsActive).HasDefaultValue(true);
+            entity.Property(u => u.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
+            entity.Property(u => u.UpdatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
 
             entity.HasOne(u => u.Role)
                   .WithMany(r => r.Users)
@@ -38,8 +47,11 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<RefreshToken>(entity =>
         {
             entity.HasKey(rt => rt.Id);
-            entity.HasIndex(rt => rt.Token).IsUnique();
-            entity.Property(rt => rt.Token).IsRequired();
+            entity.HasIndex(rt => rt.TokenHash).IsUnique();
+            entity.HasIndex(rt => rt.UserId);
+            entity.HasIndex(rt => rt.ExpiresAt);
+            entity.Property(rt => rt.TokenHash).HasMaxLength(128).IsRequired();
+            entity.Property(rt => rt.CreatedAt).HasDefaultValueSql("SYSUTCDATETIME()");
             entity.Ignore(rt => rt.IsExpired);
             entity.Ignore(rt => rt.IsRevoked);
             entity.Ignore(rt => rt.IsActive);

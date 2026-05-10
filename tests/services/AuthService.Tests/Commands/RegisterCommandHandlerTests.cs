@@ -48,6 +48,8 @@ public class RegisterCommandHandlerTests
               .ReturnsAsync(false);
         _users.Setup(r => r.ExistsByUsernameAsync("alice", It.IsAny<CancellationToken>()))
               .ReturnsAsync(false);
+        _users.Setup(r => r.ExistsByPhoneNumberAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+              .ReturnsAsync(false);
         _roles.Setup(r => r.GetByNameAsync("User", It.IsAny<CancellationToken>()))
               .ReturnsAsync(DefaultRole);
         _users.Setup(r => r.CreateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
@@ -62,11 +64,65 @@ public class RegisterCommandHandlerTests
         Assert.NotNull(result);
         Assert.NotEmpty(result.AccessToken);
         Assert.NotEmpty(result.RefreshToken);
-        Assert.Equal("alice", result.Username);
-        Assert.Equal("alice@example.com", result.Email);
+        Assert.Equal("alice", result.User.Username);
+        Assert.Equal("alice@example.com", result.User.Email);
+        Assert.Null(result.User.PhoneNumber);
+        Assert.Equal("User", result.User.Role);
 
-        _users.Verify(r => r.CreateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Once);
-        _refreshTokens.Verify(r => r.CreateAsync(It.IsAny<RefreshToken>(), It.IsAny<CancellationToken>()), Times.Once);
+        _users.Verify(
+            r => r.CreateAsync(
+                It.Is<User>(u => u.Username == "alice" && u.Email == "alice@example.com"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+        _refreshTokens.Verify(
+            r => r.CreateAsync(
+                It.Is<RefreshToken>(t => !string.IsNullOrWhiteSpace(t.TokenHash)),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task Handle_NewUser_NormalizesEmailAndTrimsUsername()
+    {
+        _users.Setup(r => r.ExistsByEmailAsync("alice@example.com", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(false);
+        _users.Setup(r => r.ExistsByUsernameAsync("alice", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(false);
+        _users.Setup(r => r.ExistsByPhoneNumberAsync("5551234567", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(false);
+        _roles.Setup(r => r.GetByNameAsync("User", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(DefaultRole);
+        _users.Setup(r => r.CreateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()))
+              .ReturnsAsync((User u, CancellationToken _) => u);
+        _refreshTokens.Setup(r => r.CreateAsync(It.IsAny<RefreshToken>(), It.IsAny<CancellationToken>()))
+                      .ReturnsAsync((RefreshToken t, CancellationToken _) => t);
+
+        var result = await CreateHandler().Handle(
+            new RegisterCommand(" alice ", " Alice@Example.COM ", "Password1!", "(555) 123-4567"),
+            CancellationToken.None);
+
+        Assert.Equal("alice", result.User.Username);
+        Assert.Equal("alice@example.com", result.User.Email);
+        Assert.Equal("5551234567", result.User.PhoneNumber);
+    }
+
+    [Fact]
+    public async Task Handle_DuplicatePhoneNumber_ThrowsInvalidOperationException()
+    {
+        _users.Setup(r => r.ExistsByEmailAsync("alice@example.com", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(false);
+        _users.Setup(r => r.ExistsByUsernameAsync("alice", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(false);
+        _users.Setup(r => r.ExistsByPhoneNumberAsync("5551234567", It.IsAny<CancellationToken>()))
+              .ReturnsAsync(true);
+
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(() =>
+            CreateHandler().Handle(
+                new RegisterCommand("alice", "alice@example.com", "Password1!", "555-123-4567"),
+                CancellationToken.None));
+
+        Assert.Equal("Phone number is already registered.", ex.Message);
+        _users.Verify(r => r.CreateAsync(It.IsAny<User>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]

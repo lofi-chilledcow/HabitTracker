@@ -11,7 +11,17 @@ public class GetAllHabitsQueryHandler(HabitDbContext db) : IRequestHandler<GetAl
     {
         return await db.Habits
             .AsNoTracking()
-            .Select(h => new HabitDto(h.Id, h.Name, h.Description, h.Frequency, h.CreatedAt, h.IsActive))
+            .Where(h => h.UserId == request.UserId && h.IsActive)
+            .Select(h => new HabitDto(
+                h.Id,
+                h.Name,
+                h.Description,
+                h.Frequency,
+                h.TargetDaysPerWeek,
+                h.IsPublic,
+                h.CreatedAt,
+                h.UpdatedAt,
+                h.IsActive))
             .ToListAsync(cancellationToken);
     }
 }

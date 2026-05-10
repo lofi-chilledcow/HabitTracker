@@ -45,6 +45,12 @@ public class JwtTokenService
         return Convert.ToBase64String(bytes);
     }
 
+    public string HashRefreshToken(string refreshToken)
+    {
+        var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(refreshToken));
+        return Convert.ToBase64String(bytes);
+    }
+
     public DateTime GetRefreshTokenExpiry() =>
         DateTime.UtcNow.AddDays(double.Parse(_config["Jwt:RefreshTokenExpiryDays"]!));
 }

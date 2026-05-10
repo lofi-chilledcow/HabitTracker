@@ -19,16 +19,19 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
     public async Task<AuthResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
-        var existing = await _refreshTokens.GetByTokenAsync(request.RefreshToken, cancellationToken);
+        var existing = await _refreshTokens.GetByTokenHashAsync(
+            _jwt.HashRefreshToken(request.RefreshToken),
+            cancellationToken);
 
-        if (existing is null || !existing.IsActive)
+        if (existing is null || !existing.IsActive || !existing.User.IsActive)
             throw new UnauthorizedAccessException("Invalid or expired refresh token.");
 
         await _refreshTokens.RevokeAsync(existing, cancellationToken);
 
+        var newRefreshTokenValue = _jwt.GenerateRefreshToken();
         var newRefreshToken = new RefreshToken
         {
-            Token = _jwt.GenerateRefreshToken(),
+            TokenHash = _jwt.HashRefreshToken(newRefreshTokenValue),
             UserId = existing.UserId,
             ExpiresAt = _jwt.GetRefreshTokenExpiry()
         };
@@ -37,6 +40,9 @@ public class RefreshTokenCommandHandler : IRequestHandler<RefreshTokenCommand, A
 
         var accessToken = _jwt.Generate(existing.User, existing.User.Role.Name);
 
-        return new AuthResponse(accessToken, newRefreshToken.Token, existing.User.Username, existing.User.Email);
+        return new AuthResponse(
+            accessToken,
+            newRefreshTokenValue,
+            new UserProfileDto(existing.User.Id, existing.User.Username, existing.User.Email, existing.User.PhoneNumber, existing.User.Role.Name));
     }
 }

@@ -16,6 +16,10 @@ public class RegisterRequestValidator : AbstractValidator<RegisterRequest>
             .NotEmpty()
             .EmailAddress().WithMessage("Email must be a valid email address.");
 
+        RuleFor(x => x.PhoneNumber)
+            .Must(phone => string.IsNullOrWhiteSpace(phone) || phone.Count(char.IsDigit) >= 10)
+            .WithMessage("Phone number must include at least 10 digits.");
+
         RuleFor(x => x.Password)
             .NotEmpty()
             .MinimumLength(8).WithMessage("Password must be at least 8 characters.")

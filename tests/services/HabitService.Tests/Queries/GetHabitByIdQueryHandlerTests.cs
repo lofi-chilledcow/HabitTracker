@@ -9,6 +9,9 @@ namespace HabitService.Tests.Queries;
 
 public class GetHabitByIdQueryHandlerTests
 {
+    private static readonly Guid UserId = Guid.NewGuid();
+    private static readonly Guid OtherUserId = Guid.NewGuid();
+
     private static HabitDbContext CreateDb() =>
         new(new DbContextOptionsBuilder<HabitDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
@@ -18,17 +21,31 @@ public class GetHabitByIdQueryHandlerTests
     public async Task Handle_ExistingId_ReturnsDto()
     {
         using var db = CreateDb();
-        var habit = new Habit { Name = "Meditate", Description = "10 minutes", Frequency = "Daily" };
+        var habit = new Habit { UserId = UserId, Name = "Meditate", Description = "10 minutes", Frequency = "daily" };
         db.Habits.Add(habit);
         await db.SaveChangesAsync();
 
         var handler = new GetHabitByIdQueryHandler(db);
-        var result = await handler.Handle(new GetHabitByIdQuery(habit.Id), CancellationToken.None);
+        var result = await handler.Handle(new GetHabitByIdQuery(habit.Id, UserId), CancellationToken.None);
 
         Assert.NotNull(result);
         Assert.Equal(habit.Id, result.Id);
         Assert.Equal("Meditate", result.Name);
-        Assert.Equal("Daily", result.Frequency);
+        Assert.Equal("daily", result.Frequency);
+    }
+
+    [Fact]
+    public async Task Handle_OtherUsersHabit_ReturnsNull()
+    {
+        using var db = CreateDb();
+        var habit = new Habit { UserId = OtherUserId, Name = "Meditate", Frequency = "daily" };
+        db.Habits.Add(habit);
+        await db.SaveChangesAsync();
+
+        var handler = new GetHabitByIdQueryHandler(db);
+        var result = await handler.Handle(new GetHabitByIdQuery(habit.Id, UserId), CancellationToken.None);
+
+        Assert.Null(result);
     }
 
     [Fact]
@@ -37,7 +54,7 @@ public class GetHabitByIdQueryHandlerTests
         using var db = CreateDb();
         var handler = new GetHabitByIdQueryHandler(db);
 
-        var result = await handler.Handle(new GetHabitByIdQuery(Guid.NewGuid()), CancellationToken.None);
+        var result = await handler.Handle(new GetHabitByIdQuery(Guid.NewGuid(), UserId), CancellationToken.None);
 
         Assert.Null(result);
     }

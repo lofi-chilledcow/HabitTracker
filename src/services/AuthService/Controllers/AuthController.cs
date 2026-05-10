@@ -1,7 +1,10 @@
 using AuthService.Commands;
 using AuthService.DTOs;
 using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace AuthService.Controllers;
 
@@ -19,7 +22,7 @@ public class AuthController : ControllerBase
         try
         {
             var result = await _mediator.Send(
-                new RegisterCommand(request.Username, request.Email, request.Password),
+                new RegisterCommand(request.Username, request.Email, request.Password, request.PhoneNumber),
                 cancellationToken);
             return Ok(result);
         }
@@ -35,7 +38,7 @@ public class AuthController : ControllerBase
         try
         {
             var result = await _mediator.Send(
-                new LoginCommand(request.Email, request.Password),
+                new LoginCommand(request.Identifier, request.Password),
                 cancellationToken);
             return Ok(result);
         }
@@ -59,5 +62,41 @@ public class AuthController : ControllerBase
         {
             return Unauthorized(new { error = ex.Message });
         }
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public async Task<IActionResult> Me(CancellationToken cancellationToken)
+    {
+        var userId = GetCurrentUserId();
+
+        if (userId is null)
+            return Unauthorized(new { error = "User session is no longer valid." });
+
+        try
+        {
+            var result = await _mediator.Send(new GetCurrentUserQuery(userId.Value), cancellationToken);
+            return Ok(result);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            return Unauthorized(new { error = ex.Message });
+        }
+    }
+
+    [HttpPost("logout")]
+    public async Task<IActionResult> Logout(LogoutRequest request, CancellationToken cancellationToken)
+    {
+        await _mediator.Send(new LogoutCommand(request.RefreshToken), cancellationToken);
+        return NoContent();
+    }
+
+    private Guid? GetCurrentUserId()
+    {
+        var value = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? User.FindFirstValue("sub");
+
+        return Guid.TryParse(value, out var userId) ? userId : null;
     }
 }
