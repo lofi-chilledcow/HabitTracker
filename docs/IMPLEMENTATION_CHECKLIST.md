@@ -97,9 +97,9 @@ Gate:
 - [x] Implement logout.
 - [x] Implement `/api/auth/me`.
 - [x] Add `AdminOnly` policy.
-- [ ] Add admin user list endpoint.
-- [ ] Add admin user enable/disable endpoint.
-- [ ] Add admin role-change endpoint if needed.
+- [x] Add admin user list endpoint.
+- [x] Add admin user enable/disable endpoint.
+- [x] Add admin role-change endpoint if needed.
 - [ ] Add/update AuthService OpenAPI docs.
 
 Tests:
@@ -117,14 +117,14 @@ Tests:
 - [x] Refresh rejects revoked token reuse.
 - [x] Logout revokes token.
 - [x] `/me` returns profile.
-- [ ] Admin endpoints reject normal users.
-- [ ] Admin endpoints accept admins.
+- [x] Admin endpoints reject normal users.
+- [x] Admin endpoints accept admins.
 
 Gate:
 
 - [x] AuthService builds.
 - [x] AuthService tests pass.
-- [ ] Auth API response contracts are final enough for frontend auth.
+- [x] Auth API response contracts are final enough for frontend auth.
 
 ## Phase 4: HabitService Rewrite
 
@@ -200,12 +200,12 @@ Tests:
 - [x] Leaderboard includes public active habits.
 - [x] Leaderboard excludes private habits.
 - [x] Leaderboard excludes archived habits.
-- [ ] Admin summary endpoints require admin role.
+- [x] Admin summary endpoints require admin role.
 
 Gate:
 
 - [x] Competition data does not leak private habits.
-- [ ] Admin backend is server-protected.
+- [x] Admin backend is server-protected.
 
 ## Phase 7: ApiGateway
 
