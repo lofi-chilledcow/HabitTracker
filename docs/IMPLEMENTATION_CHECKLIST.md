@@ -232,34 +232,34 @@ Gate:
 ## Phase 8: Frontend Architecture Setup
 
 - [x] Decide `src/frontend-v2` or hard replace.
-- [ ] Hard delete/recreate `src/frontend`.
-- [ ] Create shell app.
-- [ ] Create shared package/module.
-- [ ] Add React Router.
-- [ ] Add TanStack Query.
-- [ ] Add shell-owned AuthProvider.
-- [ ] Add shared API client.
-- [ ] Add ProblemDetails parsing.
-- [ ] Add shared UI primitives.
+- [x] Hard delete/recreate `src/frontend`.
+- [x] Create shell app.
+- [x] Create shared package/module.
+- [x] Add React Router.
+- [x] Add TanStack Query.
+- [x] Add shell-owned AuthProvider.
+- [x] Add shared API client.
+- [x] Add ProblemDetails parsing.
+- [x] Add shared UI primitives.
 - [ ] Add MFE remote placeholders.
 
 Gate:
 
-- [ ] Shell runs.
+- [x] Shell runs.
 - [ ] Placeholder remotes load.
-- [ ] Auth/session is centralized.
-- [ ] No per-MFE token helpers.
+- [x] Auth/session is centralized.
+- [x] No per-MFE token helpers.
 
 ## Phase 9: Frontend Auth
 
-- [ ] Implement login page.
-- [ ] Implement register page.
-- [ ] Implement `/api/auth/me` bootstrap.
-- [ ] Implement refresh-on-401.
-- [ ] Implement logout.
-- [ ] Implement protected routes.
-- [ ] Implement admin role routes.
-- [ ] Implement app navigation.
+- [x] Implement login page.
+- [x] Implement register page.
+- [x] Implement `/api/auth/me` bootstrap.
+- [x] Implement refresh-on-401.
+- [x] Implement logout.
+- [x] Implement protected routes.
+- [x] Implement admin role routes.
+- [x] Implement app navigation.
 
 Tests:
 
@@ -276,18 +276,18 @@ Gate:
 
 ## Phase 10: Frontend Habits
 
-- [ ] Implement Today page.
-- [ ] Fetch habits.
-- [ ] Fetch today's completions.
-- [ ] Mark complete with `PUT`.
-- [ ] Unmark with `DELETE`.
-- [ ] Add optimistic UI with rollback.
-- [ ] Implement habit list.
-- [ ] Implement create habit.
-- [ ] Implement edit habit.
-- [ ] Implement archive habit.
-- [ ] Implement public/private toggle.
-- [ ] Add empty/loading/error states.
+- [x] Implement Today page.
+- [x] Fetch habits.
+- [x] Fetch today's completions.
+- [x] Mark complete with `PUT`.
+- [x] Unmark with `DELETE`.
+- [x] Add optimistic UI with rollback.
+- [x] Implement habit list.
+- [x] Implement create habit.
+- [x] Implement edit habit.
+- [x] Implement archive habit.
+- [x] Implement public/private toggle.
+- [x] Add empty/loading/error states.
 
 Tests:
 
@@ -303,12 +303,12 @@ Gate:
 
 ## Phase 11: Frontend Competition And Admin
 
-- [ ] Implement leaderboard page.
-- [ ] Verify private habits do not appear.
+- [x] Implement leaderboard page.
+- [x] Verify private habits do not appear.
 - [ ] Implement admin dashboard.
-- [ ] Implement user management page.
+- [x] Implement user management page.
 - [ ] Implement health page if backend endpoint exists.
-- [ ] Add responsive mobile behavior.
+- [x] Add responsive mobile behavior.
 
 Gate:
 

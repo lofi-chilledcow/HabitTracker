@@ -5,7 +5,10 @@ build/
 .env
 .env.local
 .env.*.local
+.env.development
+.env.production
 *.log
+*.tsbuildinfo
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
