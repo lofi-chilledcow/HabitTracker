@@ -1,30 +1,25 @@
 # AuthService API
 
-Authentication service for HabitTracker. Handles user registration, login, and JWT token management.
+AuthService owns registration, login, refresh tokens, current profile, and admin user management.
 
-- **Base URL (dev):** `http://localhost:5039`
-- **Content-Type:** `application/json`
-- **Auth scheme:** Bearer JWT (`Authorization: Bearer <accessToken>`)
-
----
+- Base URL: `http://localhost:5039`
+- Gateway paths are the same under `http://localhost:5000`
+- Protected endpoints require `Authorization: Bearer <accessToken>`
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| POST | `/api/auth/register` | Register a new user |
-| POST | `/api/auth/login` | Log in with email, username, or phone and receive tokens |
-| POST | `/api/auth/refresh` | Exchange a refresh token for a new access token |
-| POST | `/api/auth/logout` | Revoke a refresh token |
-| GET | `/api/auth/me` | Return the current user profile |
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| POST | `/api/auth/register` | none | Create a user with role `User` |
+| POST | `/api/auth/login` | none | Login with email, username, or phone |
+| POST | `/api/auth/refresh` | none | Rotate refresh token and issue new tokens |
+| POST | `/api/auth/logout` | none | Revoke a submitted refresh token |
+| GET | `/api/auth/me` | user | Return current user profile |
+| GET | `/api/admin/users` | admin | List users |
+| PATCH | `/api/admin/users/{id}/status` | admin | Enable or disable a user |
+| PATCH | `/api/admin/users/{id}/role` | admin | Change a user's role |
 
----
-
-## POST `/api/auth/register`
-
-Creates a new user account with the default `User` role. Password is hashed with BCrypt before storage.
-
-### Request body
+## Register
 
 ```json
 {
@@ -35,70 +30,15 @@ Creates a new user account with the default `User` role. Password is hashed with
 }
 ```
 
-| Field | Type | Rules |
-|-------|------|-------|
-| `username` | string | Required. Min 3 characters. No spaces. |
-| `email` | string | Required. Valid email format. |
-| `password` | string | Required. Min 8 chars. At least one uppercase letter. At least one number. |
-| `phoneNumber` | string | Optional. Must include at least 10 digits. Stored as digits only. |
+Rules:
 
-### Responses
+- `username` is required, at least 3 characters, and cannot contain spaces.
+- `email` is required and normalized to lowercase.
+- `phoneNumber` is optional and stored as digits only.
+- `password` is required, at least 8 characters, with one uppercase letter and one number.
+- Duplicate email, username, or phone returns `409`.
 
-#### `200 OK` — Registration successful
-
-```json
-{
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu...",
-  "user": {
-    "id": "7e4c5f0a-1a90-4d6e-bff3-7d274b91a400",
-    "username": "johndoe",
-    "email": "john@example.com",
-    "phoneNumber": "5551234567",
-    "role": "User"
-  }
-}
-```
-
-#### `400 Bad Request` — Validation failed
-
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-  "title": "One or more validation errors occurred.",
-  "status": 400,
-  "errors": {
-    "Username": ["Username must be at least 3 characters."],
-    "Password": [
-      "Password must be at least 8 characters.",
-      "Password must contain at least one uppercase letter.",
-      "Password must contain at least one number."
-    ]
-  }
-}
-```
-
-#### `409 Conflict` — Duplicate email, username, or phone
-
-```json
-{ "error": "Email is already registered." }
-```
-
-```json
-{ "error": "Username is already taken." }
-```
-
-```json
-{ "error": "Phone number is already registered." }
-```
-
----
-
-## POST `/api/auth/login`
-
-Authenticates an existing user by email, username, or phone number and issues a new access token and refresh token.
-
-### Request body
+## Login
 
 ```json
 {
@@ -107,19 +47,14 @@ Authenticates an existing user by email, username, or phone number and issues a 
 }
 ```
 
-| Field | Type | Rules |
-|-------|------|-------|
-| `identifier` | string | Required. Email, username, or phone number. |
-| `password` | string | Required. |
+`identifier` may be email, username, or phone number.
 
-### Responses
-
-#### `200 OK` — Login successful
+## Auth Response
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu...",
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "raw-refresh-token",
   "user": {
     "id": "7e4c5f0a-1a90-4d6e-bff3-7d274b91a400",
     "username": "johndoe",
@@ -130,173 +65,95 @@ Authenticates an existing user by email, username, or phone number and issues a 
 }
 ```
 
-#### `400 Bad Request` — Validation failed
+Refresh tokens are returned raw once, stored hashed in the database, and rotated on refresh.
+
+## Current User
+
+```text
+GET /api/auth/me
+```
+
+Returns `UserProfileDto`.
+
+## Logout
 
 ```json
 {
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-  "title": "One or more validation errors occurred.",
-  "status": 400,
-  "errors": {
-    "Identifier": ["Email, username, or phone number is required."]
+  "refreshToken": "raw-refresh-token"
+}
+```
+
+Returns `204` whether or not the token was already revoked.
+
+## Admin Users
+
+Admin routes require the `AdminOnly` policy.
+
+```text
+GET /api/admin/users
+```
+
+Returns:
+
+```json
+[
+  {
+    "id": "7e4c5f0a-1a90-4d6e-bff3-7d274b91a400",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "phoneNumber": "5551234567",
+    "role": "User",
+    "isActive": true,
+    "createdAt": "2026-05-10T19:00:00Z",
+    "updatedAt": "2026-05-10T19:00:00Z"
   }
-}
+]
 ```
 
-#### `401 Unauthorized` — Invalid credentials
+Set status:
 
-```json
-{ "error": "Invalid login or password." }
+```text
+PATCH /api/admin/users/{id}/status
 ```
-
-> Response is deliberately vague to prevent user enumeration.
-
----
-
-## POST `/api/auth/refresh`
-
-Exchanges a valid refresh token for a new access token. The submitted token is immediately revoked and replaced (token rotation).
-
-### Request body
 
 ```json
 {
-  "refreshToken": "dGhpcyBpcyBhIHJhbmRvbSByZWZyZXNoIHRva2Vu..."
+  "isActive": false
 }
 ```
 
-| Field | Type | Rules |
-|-------|------|-------|
-| `refreshToken` | string | Required. Must be active (not expired or revoked). |
+Set role:
 
-### Responses
-
-#### `200 OK` — Token refreshed
+```text
+PATCH /api/admin/users/{id}/role
+```
 
 ```json
 {
-  "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
-  "refreshToken": "bmV3UmVmcmVzaFRva2VuVmFsdWVIZXJl...",
-  "username": "johndoe",
-  "email": "john@example.com"
+  "role": "Admin"
 }
 ```
 
-> Store the new `refreshToken` immediately — the previous one is now invalid.
+Valid roles are `User` and `Admin`.
 
-#### `401 Unauthorized` — Token invalid, expired, or already used
+## JWT Claims
 
-```json
-{ "error": "Invalid or expired refresh token." }
-```
-
----
-
-## Schemas
-
-### `AuthResponse`
-
-Returned by all three endpoints on success.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `accessToken` | string | Signed JWT. Valid for **60 minutes**. |
-| `refreshToken` | string | Opaque random token (64-byte CSPRNG, base64). Valid for **30 days**. Single-use. |
-| `username` | string | The authenticated user's username. |
-| `email` | string | The authenticated user's email. |
-
-### JWT Access Token Claims
-
-| Claim | Description |
-|-------|-------------|
-| `sub` | User ID (GUID) |
-| `email` | User's email address |
+| Claim | Meaning |
+| --- | --- |
+| `sub` | User id |
+| `email` | Email |
 | `name` | Username |
-| `role` | Role name (`User` or `Admin`) |
-| `jti` | Unique token ID (GUID) |
-| `iss` | `AuthService` |
-| `aud` | `HabitTrackerApp` |
-| `exp` | Expiry — 60 minutes from issue time |
+| `role` | `User` or `Admin` |
+| `jti` | Token id |
 
----
+## Status Codes
 
-## Status Code Reference
-
-| Code | When |
-|------|------|
-| `200 OK` | Request succeeded |
-| `400 Bad Request` | Input failed FluentValidation rules |
-| `401 Unauthorized` | Invalid credentials or token |
-| `409 Conflict` | Email or username already registered |
-
----
-
-## Error Formats
-
-Two distinct shapes depending on failure type.
-
-### Validation error (`400`)
-
-Produced by FluentValidation before the handler runs. Multiple messages per field are possible.
-
-```json
-{
-  "type": "https://tools.ietf.org/html/rfc7231#section-6.5.1",
-  "title": "One or more validation errors occurred.",
-  "status": 400,
-  "errors": {
-    "<FieldName>": ["<message>", "..."]
-  }
-}
-```
-
-### Application error (`401`, `409`)
-
-Produced when business logic fails.
-
-```json
-{
-  "error": "<message>"
-}
-```
-
----
-
-## Validation Rules
-
-### Register
-
-| Field | Rules |
-|-------|-------|
-| `username` | Not empty · min 3 characters · no spaces |
-| `email` | Not empty · valid email format |
-| `password` | Not empty · min 8 characters · ≥1 uppercase letter · ≥1 number |
-
-### Login
-
-| Field | Rules |
-|-------|-------|
-| `email` | Not empty · valid email format |
-| `password` | Not empty |
-
----
-
-## Token Lifecycle
-
-```
-Register / Login
-      │
-      ├─ accessToken  (JWT, 60 min) ──► include as Bearer token on protected requests
-      └─ refreshToken (opaque, 30 days)
-                │
-                │  when accessToken expires:
-                ▼
-        POST /api/auth/refresh
-                │
-         old token revoked
-                │
-                ├─ new accessToken
-                └─ new refreshToken  ◄── store this; old one is now invalid
-```
-
-Refresh tokens are **single-use**. Submitting an already-revoked token returns `401`.
+| Code | Meaning |
+| --- | --- |
+| `200` | Request succeeded |
+| `204` | Logout succeeded |
+| `400` | Validation failed |
+| `401` | Invalid credentials or token |
+| `403` | Authenticated but not allowed |
+| `404` | Admin target user not found |
+| `409` | Duplicate registration field |

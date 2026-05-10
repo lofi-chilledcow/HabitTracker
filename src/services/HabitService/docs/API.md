@@ -1,250 +1,117 @@
 # HabitService API
 
-Habit management service for HabitTracker. Provides full CRUD for habits.
+HabitService owns user habits, habit completions, and public competition data.
 
-- **Base URL (dev):** `http://localhost:5110`
-- **Content-Type:** `application/json`
-- **Authentication:** None (not yet enforced)
-
----
+- Base URL: `http://localhost:5110`
+- Gateway paths are the same under `http://localhost:5000`
+- Protected endpoints require `Authorization: Bearer <accessToken>`
 
 ## Endpoints
 
-| Method | Path | Description |
-|--------|------|-------------|
-| GET | `/api/habits` | List all habits |
-| GET | `/api/habits/{id}` | Get a single habit |
-| POST | `/api/habits` | Create a habit |
-| PUT | `/api/habits/{id}` | Update a habit |
-| DELETE | `/api/habits/{id}` | Delete a habit |
+| Method | Path | Auth | Purpose |
+| --- | --- | --- | --- |
+| GET | `/api/habits` | user | List current user's active habits |
+| GET | `/api/habits/{id}` | user | Get one owned habit |
+| POST | `/api/habits` | user | Create a habit for the current user |
+| PUT | `/api/habits/{id}` | user | Update one owned habit |
+| DELETE | `/api/habits/{id}` | user | Archive one owned habit |
+| GET | `/api/completions/today` | user | List current user's completions for today |
+| GET | `/api/habits/{habitId}/completions` | user | List completion history for one owned habit |
+| PUT | `/api/habits/{habitId}/completions/{date}` | user | Mark an owned active habit complete |
+| DELETE | `/api/habits/{habitId}/completions/{date}` | user | Unmark an owned active habit |
+| GET | `/api/competition/leaderboard` | none | List public active habit leaderboard |
 
----
+## Habit Request
 
-## GET `/api/habits`
+```json
+{
+  "name": "Read",
+  "description": "Read before bed",
+  "frequency": "daily",
+  "targetDaysPerWeek": null,
+  "isPublic": true
+}
+```
 
-Returns all habits.
+Rules:
 
-### Responses
+- `name` is required and max 200 characters.
+- `frequency` must be `daily` or `weekly`.
+- Weekly habits require `targetDaysPerWeek` from 1 to 7.
+- Daily habits must not include `targetDaysPerWeek`.
+- `userId` is never accepted from the frontend; it comes from the JWT.
 
-#### `200 OK`
+## Habit Response
+
+```json
+{
+  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "name": "Read",
+  "description": "Read before bed",
+  "frequency": "daily",
+  "targetDaysPerWeek": null,
+  "isPublic": true,
+  "createdAt": "2026-05-10T19:00:00Z",
+  "updatedAt": "2026-05-10T19:00:00Z",
+  "isActive": true
+}
+```
+
+## Completion Request
+
+`date` route values use `yyyy-MM-dd`.
+
+```json
+{
+  "notes": "Done"
+}
+```
+
+`PUT` is idempotent. If the completion already exists for the same habit and date, notes are updated and no duplicate row is inserted.
+
+`DELETE` is idempotent for an owned active habit. It returns `204` even if the completion was already missing.
+
+## Completion Response
+
+```json
+{
+  "id": "4b3c8f1d-8c9a-4e7a-8507-c4d2d5af02e9",
+  "habitId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+  "completedDate": "2026-05-10",
+  "notes": "Done",
+  "createdAt": "2026-05-10T19:00:00Z"
+}
+```
+
+## Leaderboard
+
+```text
+GET /api/competition/leaderboard?days=30&limit=50
+```
+
+Only public active habits are returned. Private and archived habits are excluded.
 
 ```json
 [
   {
-    "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-    "name": "Morning Run",
-    "description": "Run 5km before breakfast",
-    "frequency": "Daily",
-    "createdAt": "2026-03-22T10:00:00Z",
-    "isActive": true
-  },
-  {
-    "id": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
-    "name": "Monthly Budget Check",
-    "description": "Review spending and set savings targets",
-    "frequency": "Monthly",
-    "createdAt": "2026-03-22T10:00:00Z",
-    "isActive": false
+    "habitId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "name": "Read",
+    "description": "Read before bed",
+    "frequency": "daily",
+    "targetDaysPerWeek": null,
+    "completionCount": 12,
+    "createdAt": "2026-05-10T19:00:00Z"
   }
 ]
 ```
 
-Returns an empty array `[]` when no habits exist.
+## Status Codes
 
----
-
-## GET `/api/habits/{id}`
-
-Returns a single habit by its GUID.
-
-### Path parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | uuid | Habit ID |
-
-### Responses
-
-#### `200 OK`
-
-```json
-{
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "name": "Morning Run",
-  "description": "Run 5km before breakfast",
-  "frequency": "Daily",
-  "createdAt": "2026-03-22T10:00:00Z",
-  "isActive": true
-}
-```
-
-#### `404 Not Found`
-
-Empty body.
-
----
-
-## POST `/api/habits`
-
-Creates a new habit. New habits default to `isActive: true`.
-
-### Request body
-
-```json
-{
-  "name": "Morning Run",
-  "description": "Run 5km before breakfast",
-  "frequency": "Daily"
-}
-```
-
-| Field | Type | Required | Rules |
-|-------|------|----------|-------|
-| `name` | string | Yes | Max 200 characters |
-| `description` | string \| null | No | Max 1000 characters |
-| `frequency` | string | Yes | Max 50 characters. Suggested values: `Daily`, `Weekly`, `Monthly` |
-
-### Responses
-
-#### `201 Created`
-
-Includes a `Location` header pointing to the new resource.
-
-```
-Location: /api/habits/3fa85f64-5717-4562-b3fc-2c963f66afa6
-```
-
-```json
-{
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "name": "Morning Run",
-  "description": "Run 5km before breakfast",
-  "frequency": "Daily",
-  "createdAt": "2026-03-22T10:00:00Z",
-  "isActive": true
-}
-```
-
----
-
-## PUT `/api/habits/{id}`
-
-Replaces all mutable fields on an existing habit. All fields are required — partial updates are not supported.
-
-### Path parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | uuid | Habit ID |
-
-### Request body
-
-```json
-{
-  "name": "Morning Run",
-  "description": "Run 10km before breakfast",
-  "frequency": "Daily",
-  "isActive": true
-}
-```
-
-| Field | Type | Required | Rules |
-|-------|------|----------|-------|
-| `name` | string | Yes | Max 200 characters |
-| `description` | string \| null | No | Max 1000 characters |
-| `frequency` | string | Yes | Max 50 characters |
-| `isActive` | boolean | Yes | Use `false` to soft-disable a habit |
-
-### Responses
-
-#### `200 OK`
-
-```json
-{
-  "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-  "name": "Morning Run",
-  "description": "Run 10km before breakfast",
-  "frequency": "Daily",
-  "createdAt": "2026-03-22T10:00:00Z",
-  "isActive": true
-}
-```
-
-#### `404 Not Found`
-
-Empty body.
-
----
-
-## DELETE `/api/habits/{id}`
-
-Permanently deletes a habit.
-
-### Path parameters
-
-| Parameter | Type | Description |
-|-----------|------|-------------|
-| `id` | uuid | Habit ID |
-
-### Responses
-
-#### `204 No Content`
-
-Empty body. Habit deleted.
-
-#### `404 Not Found`
-
-Empty body.
-
----
-
-## Schemas
-
-### `HabitDto`
-
-Returned by all endpoints on success.
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `id` | uuid | Unique identifier (GUID, sequential) |
-| `name` | string | Habit name. Max 200 characters |
-| `description` | string \| null | Optional description. Max 1000 characters |
-| `frequency` | string | How often the habit recurs (e.g. `Daily`, `Weekly`, `Monthly`) |
-| `createdAt` | datetime | UTC timestamp of creation (ISO 8601) |
-| `isActive` | boolean | Whether the habit is currently active |
-
-### `CreateHabitDto`
-
-| Field | Type | Required |
-|-------|------|----------|
-| `name` | string | Yes |
-| `description` | string \| null | No |
-| `frequency` | string | Yes |
-
-### `UpdateHabitDto`
-
-| Field | Type | Required |
-|-------|------|----------|
-| `name` | string | Yes |
-| `description` | string \| null | No |
-| `frequency` | string | Yes |
-| `isActive` | boolean | Yes |
-
----
-
-## Status Code Reference
-
-| Code | When |
-|------|------|
-| `200 OK` | Successful read or update |
-| `201 Created` | Habit successfully created |
-| `204 No Content` | Habit successfully deleted |
-| `404 Not Found` | No habit with the given ID exists |
-
----
-
-## Error Format
-
-`404` responses return an empty body with no JSON payload.
-
-No input validation is currently enforced — invalid or missing fields will result in a `400` from the framework's model binding.
+| Code | Meaning |
+| --- | --- |
+| `200` | Request succeeded |
+| `201` | Habit created |
+| `204` | Delete/archive/unmark succeeded |
+| `400` | Validation failed |
+| `401` | Missing or invalid access token |
+| `404` | Owned resource was not found |
