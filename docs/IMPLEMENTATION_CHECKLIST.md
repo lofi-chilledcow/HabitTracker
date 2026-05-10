@@ -212,8 +212,8 @@ Gate:
 - [ ] Update routes for AuthService.
 - [x] Update routes for HabitService.
 - [x] Route `/api/completions/**` to HabitService if completions are merged.
-- [ ] Route `/api/competition/**` to HabitService.
-- [ ] Route `/api/admin/**` to owning service or split clearly.
+- [x] Route `/api/competition/**` to HabitService.
+- [x] Route `/api/admin/**` to owning service or split clearly.
 - [ ] Remove old HabitCompletionService route only after service is actually removed.
 - [ ] Verify CORS for frontend dev ports.
 
@@ -226,7 +226,7 @@ IIS-impact reminder:
 
 Gate:
 
-- [ ] Gateway forwards all documented routes.
+- [x] Gateway forwards all documented routes.
 - [x] IIS-impacting changes are explicitly reviewed with owner.
 
 ## Phase 8: Frontend Architecture Setup

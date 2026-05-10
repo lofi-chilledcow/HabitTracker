@@ -116,6 +116,8 @@ The backend rewrite plan recommends merging completions into HabitService.
 Current route status:
 
 - ApiGateway now routes `/api/completions/{**catch-all}` to HabitService on `http://localhost:5110`.
+- ApiGateway now routes `/api/competition/{**catch-all}` to HabitService on `http://localhost:5110`.
+- ApiGateway now routes `/api/admin/{**catch-all}` to AuthService on `http://localhost:5039`.
 - The old `/api/habit-completions/{**catch-all}` gateway route has been removed from ApiGateway config.
 - CI/CD still builds, tests, publishes, and deploys HabitCompletionService until the dedicated CI/CD cleanup phase.
 - Local IIS may still have `HabitTracker-HabitCompletionService`; do not remove it until the CI/CD/IIS update step.
