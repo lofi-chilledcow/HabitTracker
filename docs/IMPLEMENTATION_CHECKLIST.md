@@ -210,8 +210,8 @@ Gate:
 ## Phase 7: ApiGateway
 
 - [ ] Update routes for AuthService.
-- [ ] Update routes for HabitService.
-- [ ] Route `/api/completions/**` to HabitService if completions are merged.
+- [x] Update routes for HabitService.
+- [x] Route `/api/completions/**` to HabitService if completions are merged.
 - [ ] Route `/api/competition/**` to HabitService.
 - [ ] Route `/api/admin/**` to owning service or split clearly.
 - [ ] Remove old HabitCompletionService route only after service is actually removed.
@@ -222,12 +222,12 @@ IIS-impact reminder:
 - [ ] Tell owner before removing or merging a service.
 - [ ] Confirm whether local IIS still has `HabitTracker-HabitCompletionService`.
 - [ ] Confirm whether app pool/site/folder cleanup is needed.
-- [ ] Confirm gateway route changes before deployment.
+- [x] Confirm gateway route changes before deployment.
 
 Gate:
 
 - [ ] Gateway forwards all documented routes.
-- [ ] IIS-impacting changes are explicitly reviewed with owner.
+- [x] IIS-impacting changes are explicitly reviewed with owner.
 
 ## Phase 8: Frontend Architecture Setup
 
