@@ -108,6 +108,7 @@ a {
 .form-error {
   margin: 0;
   color: #a33a2b;
+  white-space: pre-line;
 }
 
 .auth-link {

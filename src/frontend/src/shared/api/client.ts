@@ -44,7 +44,7 @@ async function parseError(response: Response) {
           if (typeof value === 'string') return [`${field}: ${value}`]
           return []
         })
-      if (messages.length > 0) return messages.join(' ')
+      if (messages.length > 0) return messages.join('\n')
     }
     if (typeof body?.title === 'string') return body.title
   } catch {
