@@ -42,8 +42,20 @@ export function HabitEditorPage({ mode }: { mode: 'create' | 'edit' }) {
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    const errors: string[] = []
+    if (!form.name.trim()) errors.push('Name: Required.')
+    if (form.name.trim().length > 200) errors.push('Name: Must be 200 characters or fewer.')
+    if (form.frequency === 'weekly' && (!form.targetDaysPerWeek || form.targetDaysPerWeek < 1 || form.targetDaysPerWeek > 7)) {
+      errors.push('Target days: Must be between 1 and 7.')
+    }
+    if (errors.length > 0) {
+      setError(errors.join('\n'))
+      return
+    }
+
     save.mutate({
       ...form,
+      name: form.name.trim(),
       description: form.description?.trim() || null,
       targetDaysPerWeek: form.frequency === 'weekly' ? Number(form.targetDaysPerWeek) : null,
     })

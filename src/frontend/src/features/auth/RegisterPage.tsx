@@ -4,6 +4,7 @@ import { UserPlus } from 'lucide-react'
 import { ApiError } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthProvider'
 import { AuthFrame } from './LoginPage'
+import { validateRegistration } from './validation'
 
 export function RegisterPage() {
   const [username, setUsername] = useState('')
@@ -18,9 +19,20 @@ export function RegisterPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    const validationErrors = validateRegistration({ username, email, phoneNumber, password })
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join('\n'))
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      await register({ username, email, phoneNumber: phoneNumber || undefined, password })
+      await register({
+        username: username.trim(),
+        email: email.trim(),
+        phoneNumber: phoneNumber.trim() || undefined,
+        password,
+      })
       navigate('/habits/today', { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Registration failed.')

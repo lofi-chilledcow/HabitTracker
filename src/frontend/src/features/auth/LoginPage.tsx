@@ -3,6 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { LogIn } from 'lucide-react'
 import { ApiError } from '../../shared/api/client'
 import { useAuth } from '../../shared/auth/AuthProvider'
+import { validateLogin } from './validation'
 
 export function LoginPage() {
   const [identifier, setIdentifier] = useState('')
@@ -16,9 +17,15 @@ export function LoginPage() {
   async function handleSubmit(event: FormEvent) {
     event.preventDefault()
     setError('')
+    const validationErrors = validateLogin({ identifier, password })
+    if (validationErrors.length > 0) {
+      setError(validationErrors.join('\n'))
+      return
+    }
+
     setIsSubmitting(true)
     try {
-      await login(identifier, password)
+      await login(identifier.trim(), password)
       navigate((location.state as { from?: string } | null)?.from ?? '/habits/today', { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Login failed.')
