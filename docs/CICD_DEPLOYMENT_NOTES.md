@@ -69,9 +69,10 @@ Frontend target rule:
 
 - Existing IIS site: `HabitTracker-UI`.
 - Existing binding shown in IIS: `http://D13BG704:8080`.
+- IP-based UI access used during smoke testing: `http://192.168.1.174:8080`.
 - Existing deployed physical path used by CI/CD: `C:\inetpub\HabitTracker\Frontend`.
 - Set `HABITTRACKER_API_URL` to the deployed ApiGateway origin, for example `http://D13BG704:5000`.
-- ApiGateway CORS allows `http://D13BG704:8080` and localhost dev origins.
+- ApiGateway CORS allows `http://D13BG704:8080`, `http://192.168.1.174:8080`, and localhost dev origins.
 
 ## Important Protection Rule
 
