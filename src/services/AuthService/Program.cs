@@ -15,8 +15,14 @@ Env.TraversePath().Load();
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Resolve environment variable tokens
+// Resolve environment variable tokens. Local dev defaults to the dev DB; deployed environments must provide DB name explicitly.
+var dbName = Environment.GetEnvironmentVariable("HABITTRACKER_DB_NAME");
+if (string.IsNullOrWhiteSpace(dbName) && !builder.Environment.IsDevelopment())
+    throw new InvalidOperationException("HABITTRACKER_DB_NAME must be configured outside Development.");
+dbName ??= "HabitTracker_Dev";
+
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")!
+    .Replace("#{HABITTRACKER_DB_NAME}#", dbName)
     .Replace("#{HABITTRACKER_DB_PASSWORD}#", Environment.GetEnvironmentVariable("HABITTRACKER_DB_PASSWORD") ?? string.Empty);
 
 builder.Configuration["Jwt:Key"] = builder.Configuration["Jwt:Key"]!

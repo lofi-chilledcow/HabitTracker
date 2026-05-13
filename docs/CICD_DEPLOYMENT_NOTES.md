@@ -52,8 +52,16 @@ Current deployment paths:
 
 Secrets used:
 
+- `HABITTRACKER_DB_NAME`
 - `HABITTRACKER_DB_PASSWORD`
 - `HABITTRACKER_JWT_SECRET`
+
+Database target rule:
+
+- Local development defaults to `HabitTracker_Dev` when `ASPNETCORE_ENVIRONMENT=Development`.
+- Deployed/non-development environments must provide `HABITTRACKER_DB_NAME`.
+- Production deployment should set `HABITTRACKER_DB_NAME` to the production database, for example `HabitTracker_Prod`.
+- AuthService and HabitService both use the same database name variable so their schemas stay in the same SQL Server database.
 
 ## Important Protection Rule
 

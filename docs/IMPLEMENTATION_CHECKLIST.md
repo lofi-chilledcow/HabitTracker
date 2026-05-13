@@ -327,6 +327,7 @@ Reminder:
 - [ ] Confirm old local app is disposable and no data preservation is needed.
 - [ ] Confirm frontend deployment path.
 - [ ] Confirm database migration policy.
+- [x] Confirm production deploy uses `HABITTRACKER_DB_NAME` instead of hard-coded dev database.
 
 Possible backend CI/CD updates:
 
