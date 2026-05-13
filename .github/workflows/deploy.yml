@@ -25,6 +25,15 @@ jobs:
         run: dotnet build src/services/ApiGateway/ApiGateway.csproj --configuration Release
         shell: cmd
 
+      - name: Build Frontend
+        run: |
+          npm ci
+          npm run build
+        working-directory: src/frontend
+        shell: cmd
+        env:
+          VITE_API_URL: ${{ secrets.HABITTRACKER_API_URL }}
+
   test:
     name: Test
     runs-on: self-hosted
@@ -58,6 +67,19 @@ jobs:
       - name: Publish ApiGateway
         run: dotnet publish src/services/ApiGateway/ApiGateway.csproj --configuration Release --output publish\ApiGateway
         shell: cmd
+
+      - name: Publish Frontend
+        run: |
+          Push-Location src\frontend
+          npm ci
+          npm run build
+          Pop-Location
+          New-Item -ItemType Directory -Force -Path publish\Frontend | Out-Null
+          Copy-Item src\frontend\dist\* publish\Frontend -Recurse -Force
+          Copy-Item src\frontend\web.config publish\Frontend\web.config -Force
+        shell: powershell
+        env:
+          VITE_API_URL: ${{ secrets.HABITTRACKER_API_URL }}
 
       - name: Upload publish artifacts
         uses: actions/upload-artifact@v4
@@ -100,6 +122,7 @@ jobs:
           %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-AuthService"
           %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-HabitService"
           %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-ApiGateway"
+          %windir%\system32\inetsrv\appcmd stop site /site.name:"HabitTracker-UI"
         shell: cmd
 
       - name: Deploy AuthService
@@ -123,9 +146,17 @@ jobs:
           exit 0
         shell: powershell
 
+      - name: Deploy Frontend
+        run: |
+          robocopy publish\Frontend C:\inetpub\HabitTracker\UI /MIR /NFL /NDL /NJH /NJS
+          if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
+          exit 0
+        shell: powershell
+
       - name: Start IIS app pools
         run: |
           %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-AuthService"
           %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-HabitService"
           %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-ApiGateway"
+          %windir%\system32\inetsrv\appcmd start site /site.name:"HabitTracker-UI"
         shell: cmd

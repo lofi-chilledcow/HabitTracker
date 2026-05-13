@@ -325,7 +325,7 @@ Reminder:
 - [ ] Confirm local IIS service/app pool changes.
 - [ ] Confirm whether `HabitCompletionService` was merged.
 - [ ] Confirm old local app is disposable and no data preservation is needed.
-- [ ] Confirm frontend deployment path.
+- [x] Confirm frontend deployment path.
 - [ ] Confirm database migration policy.
 - [x] Confirm production deploy uses `HABITTRACKER_DB_NAME` instead of hard-coded dev database.
 
@@ -339,18 +339,18 @@ Possible backend CI/CD updates:
 
 Possible frontend CI/CD updates:
 
-- [ ] Add Node setup or verify self-hosted Node.
-- [ ] Install frontend dependencies.
-- [ ] Run TypeScript checks.
+- [x] Add Node setup or verify self-hosted Node.
+- [x] Install frontend dependencies.
+- [x] Run TypeScript checks.
 - [ ] Run frontend tests.
-- [ ] Build shell and MFEs.
-- [ ] Deploy static frontend files to IIS.
-- [ ] Preserve or replace frontend `web.config` deliberately.
+- [x] Build shell and MFEs.
+- [x] Deploy static frontend files to IIS.
+- [x] Preserve or replace frontend `web.config` deliberately.
 
 Gate:
 
 - [ ] Workflow still deploys backend successfully.
-- [ ] Frontend static files deploy successfully if added.
+- [x] Frontend static files deploy successfully if added.
 - [ ] IIS app pools and deployed folders match actual services.
 
 ## Phase 13: IIS Verification

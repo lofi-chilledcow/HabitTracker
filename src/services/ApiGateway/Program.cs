@@ -26,16 +26,15 @@ builder.Host.UseSerilog((ctx, lc) =>
 
 builder.Services.AddCors(options =>
 {
+    var allowedOrigins = builder.Configuration
+        .GetSection("Cors:AllowedOrigins")
+        .Get<string[]>()
+        ?? [];
+
     options.AddDefaultPolicy(policy =>
     {
         policy
-            .WithOrigins(
-                "http://localhost:3000",
-                "http://localhost:3001",
-                "http://localhost:3002",
-                "http://localhost:3003",
-                "http://localhost:3004"
-            )
+            .WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod();
     });

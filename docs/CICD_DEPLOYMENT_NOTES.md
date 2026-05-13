@@ -52,6 +52,7 @@ Current deployment paths:
 
 Secrets used:
 
+- `HABITTRACKER_API_URL`
 - `HABITTRACKER_DB_NAME`
 - `HABITTRACKER_DB_PASSWORD`
 - `HABITTRACKER_JWT_SECRET`
@@ -62,6 +63,14 @@ Database target rule:
 - Deployed/non-development environments must provide `HABITTRACKER_DB_NAME`.
 - Production deployment should set `HABITTRACKER_DB_NAME` to the production database, for example `HabitTracker_Prod`.
 - AuthService and HabitService both use the same database name variable so their schemas stay in the same SQL Server database.
+
+Frontend target rule:
+
+- Existing IIS site: `HabitTracker-UI`.
+- Existing binding shown in IIS: `http://D13BG704:8080`.
+- Deployed physical path used by CI/CD: `C:\inetpub\HabitTracker\UI`.
+- Set `HABITTRACKER_API_URL` to the deployed ApiGateway origin, for example `http://D13BG704:5000`.
+- ApiGateway CORS allows `http://D13BG704:8080` and localhost dev origins.
 
 ## Important Protection Rule
 
@@ -99,20 +108,20 @@ Before a CI/CD update step starts, explicitly call out:
 
 ## Current Gaps
 
-### Frontend Is Not Built Or Deployed
+### Frontend Is Built And Deployed
 
-The workflow currently builds, tests, publishes, and deploys backend services only.
+The workflow builds and deploys the React frontend to the existing `HabitTracker-UI` IIS site.
 
-It does not:
+It now:
 
-- run `npm install`,
+- runs `npm ci`,
 - build shell or MFEs,
-- upload frontend artifacts,
-- deploy static frontend files to IIS,
-- deploy MFE static bundles,
-- or verify frontend routes.
+- builds `src/frontend`,
+- uploads frontend static artifacts,
+- deploys `publish\Frontend` to `C:\inetpub\HabitTracker\UI`,
+- and preserves the frontend `web.config` SPA fallback.
 
-This is fine for the current backend-focused pipeline, but the frontend rewrite will need pipeline support before production deployment.
+Manual smoke testing is still required after deployment.
 
 ### HabitCompletionService Was Removed From The Pipeline
 
@@ -177,17 +186,15 @@ Only after backend rewrite is implemented:
 
 Only after frontend rewrite is implemented:
 
-1. Add Node setup or rely on self-hosted runner Node installation.
-2. Install frontend dependencies.
-3. Build shell and MFEs.
-4. Package static frontend artifacts.
-5. Deploy static files to an IIS frontend site.
-6. Preserve `src/frontend/web.config` SPA rewrite behavior or replace it deliberately.
+1. Keep Node available on the self-hosted runner.
+2. Keep `HABITTRACKER_API_URL` aligned with the ApiGateway IIS binding.
+3. Deploy static files to the existing IIS frontend site.
+4. Preserve `src/frontend/web.config` SPA rewrite behavior.
 
 Possible frontend IIS layout:
 
 ```text
-C:\inetpub\HabitTracker\Frontend\
+C:\inetpub\HabitTracker\UI\
   index.html
   assets\
   mfe-auth\
