@@ -1,6 +1,7 @@
 import type { AuthResponse } from './types'
 
-const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:5000'
+const configuredApiUrl = import.meta.env.VITE_API_URL?.trim()
+const API_URL = configuredApiUrl || 'http://localhost:5000'
 const ACCESS_TOKEN_KEY = 'habittracker.accessToken'
 const REFRESH_TOKEN_KEY = 'habittracker.refreshToken'
 

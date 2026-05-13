@@ -32,6 +32,15 @@ jobs:
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
 
+      - name: Validate frontend API URL
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VITE_API_URL)) {
+            throw "HABITTRACKER_API_URL secret is required for the deployed frontend. Set it to the ApiGateway URL, for example http://192.168.1.174:5000."
+          }
+        shell: powershell
+        env:
+          VITE_API_URL: ${{ secrets.HABITTRACKER_API_URL }}
+
       - name: Build Frontend
         run: |
           npm ci
@@ -81,6 +90,15 @@ jobs:
           node-version: 20
           cache: npm
           cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Validate frontend API URL
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:VITE_API_URL)) {
+            throw "HABITTRACKER_API_URL secret is required for the deployed frontend. Set it to the ApiGateway URL, for example http://192.168.1.174:5000."
+          }
+        shell: powershell
+        env:
+          VITE_API_URL: ${{ secrets.HABITTRACKER_API_URL }}
 
       - name: Publish Frontend
         run: |
