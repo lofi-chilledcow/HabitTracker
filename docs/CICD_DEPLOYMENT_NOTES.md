@@ -41,8 +41,9 @@ Current backend services in pipeline:
 Current deployed IIS app pools:
 
 - `HabitTracker-AuthService`
-- `HabitTracker-HabitService`
+- `HabitService`
 - `HabitTracker-ApiGateway`
+- `HabitTracker-UI`
 
 Current deployment paths:
 
@@ -68,7 +69,7 @@ Frontend target rule:
 
 - Existing IIS site: `HabitTracker-UI`.
 - Existing binding shown in IIS: `http://D13BG704:8080`.
-- Deployed physical path used by CI/CD: `C:\inetpub\HabitTracker\UI`.
+- Existing deployed physical path used by CI/CD: `C:\inetpub\HabitTracker\Frontend`.
 - Set `HABITTRACKER_API_URL` to the deployed ApiGateway origin, for example `http://D13BG704:5000`.
 - ApiGateway CORS allows `http://D13BG704:8080` and localhost dev origins.
 
@@ -115,10 +116,10 @@ The workflow builds and deploys the React frontend to the existing `HabitTracker
 It now:
 
 - runs `npm ci`,
-- build shell or MFEs,
+- builds the React shell,
 - builds `src/frontend`,
 - uploads frontend static artifacts,
-- deploys `publish\Frontend` to `C:\inetpub\HabitTracker\UI`,
+- deploys `publish\Frontend` to `C:\inetpub\HabitTracker\Frontend`,
 - and preserves the frontend `web.config` SPA fallback.
 
 Manual smoke testing is still required after deployment.
@@ -194,17 +195,13 @@ Only after frontend rewrite is implemented:
 Possible frontend IIS layout:
 
 ```text
-C:\inetpub\HabitTracker\UI\
+C:\inetpub\HabitTracker\Frontend\
   index.html
   assets\
-  mfe-auth\
-  mfe-habits\
-  mfe-admin\
-  mfe-competition\
   web.config
 ```
 
-The final layout depends on the MFE build strategy.
+The rewrite currently deploys one React shell build. If MFE remotes are reintroduced later, place their static outputs under this same IIS frontend root unless the IIS site layout is deliberately changed.
 
 ## Recommended CI/CD Policy For Rewrite
 
@@ -230,13 +227,11 @@ Do not yet:
 
 - delete deploy workflow,
 - rename app pools,
-- remove HabitCompletionService deployment steps,
-- add frontend deployment steps,
 - add automatic database migrations,
 - change secrets,
-- or change IIS paths.
+- or change IIS paths without first confirming the live IIS physical path.
 
-Those are implementation decisions for later slices.
+HabitCompletionService removal and frontend static deployment have already been applied to the workflow because the rewrite merged completions into HabitService and the frontend has been rebuilt.
 
 Disposable local app note:
 
@@ -247,10 +242,9 @@ Disposable local app note:
 
 When we reach the CI/CD update step, pause and ask:
 
-- Has `HabitCompletionService` actually been removed or merged?
-- Does local IIS still have a `HabitTracker-HabitCompletionService` app pool?
-- Does ApiGateway still route completions to the old service?
-- Where should frontend static files be deployed?
+- Has `HabitCompletionService` stayed removed from IIS?
+- Does ApiGateway still route completions to HabitService?
+- Should frontend static files still deploy to `C:\inetpub\HabitTracker\Frontend`?
 - Should database migrations remain manual?
 
-Do not update the workflow until those answers are known.
+Do not change the workflow again until those answers are known.

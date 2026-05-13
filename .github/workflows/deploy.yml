@@ -120,7 +120,7 @@ jobs:
       - name: Stop IIS app pools
         run: |
           %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-AuthService"
-          %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-HabitService"
+          %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitService"
           %windir%\system32\inetsrv\appcmd stop apppool /apppool.name:"HabitTracker-ApiGateway"
           %windir%\system32\inetsrv\appcmd stop site /site.name:"HabitTracker-UI"
         shell: cmd
@@ -148,7 +148,7 @@ jobs:
 
       - name: Deploy Frontend
         run: |
-          robocopy publish\Frontend C:\inetpub\HabitTracker\UI /MIR /NFL /NDL /NJH /NJS
+          robocopy publish\Frontend C:\inetpub\HabitTracker\Frontend /MIR /NFL /NDL /NJH /NJS
           if ($LASTEXITCODE -ge 8) { exit $LASTEXITCODE }
           exit 0
         shell: powershell
@@ -156,7 +156,7 @@ jobs:
       - name: Start IIS app pools
         run: |
           %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-AuthService"
-          %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-HabitService"
+          %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitService"
           %windir%\system32\inetsrv\appcmd start apppool /apppool.name:"HabitTracker-ApiGateway"
           %windir%\system32\inetsrv\appcmd start site /site.name:"HabitTracker-UI"
         shell: cmd

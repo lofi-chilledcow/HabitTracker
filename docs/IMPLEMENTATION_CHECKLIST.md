@@ -322,9 +322,9 @@ Pause before starting this phase.
 Reminder:
 
 - [ ] Tell owner this is the CI/CD update step.
-- [ ] Confirm local IIS service/app pool changes.
-- [ ] Confirm whether `HabitCompletionService` was merged.
-- [ ] Confirm old local app is disposable and no data preservation is needed.
+- [x] Confirm local IIS service/app pool changes.
+- [x] Confirm whether `HabitCompletionService` was merged.
+- [x] Confirm old local app is disposable and no data preservation is needed.
 - [x] Confirm frontend deployment path.
 - [ ] Confirm database migration policy.
 - [x] Confirm production deploy uses `HABITTRACKER_DB_NAME` instead of hard-coded dev database.
@@ -336,6 +336,7 @@ Possible backend CI/CD updates:
 - [x] Update publish outputs.
 - [x] Update app pool stop/start commands.
 - [x] Update gateway deployment if routes changed.
+- [x] Align HabitService app pool name with IIS: `HabitService`.
 
 Possible frontend CI/CD updates:
 
@@ -346,6 +347,7 @@ Possible frontend CI/CD updates:
 - [x] Build shell and MFEs.
 - [x] Deploy static frontend files to IIS.
 - [x] Preserve or replace frontend `web.config` deliberately.
+- [x] Deploy frontend to existing IIS path: `C:\inetpub\HabitTracker\Frontend`.
 
 Gate:
 
@@ -356,10 +358,10 @@ Gate:
 ## Phase 13: IIS Verification
 
 - [ ] Verify AuthService site/app pool.
-- [ ] Verify HabitService site/app pool.
+- [x] Verify HabitService site/app pool name is `HabitService`.
 - [ ] Verify ApiGateway site/app pool.
 - [x] Verify HabitCompletionService is either still valid or intentionally removed.
-- [ ] Verify frontend IIS site if added.
+- [x] Verify frontend IIS site points to `C:\inetpub\HabitTracker\Frontend`.
 - [ ] Verify `.env` exists at expected path.
 - [ ] Verify gateway routes.
 - [ ] Verify health endpoints.
