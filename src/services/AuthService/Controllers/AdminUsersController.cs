@@ -47,4 +47,14 @@ public class AdminUsersController(IMediator mediator) : ControllerBase
             return BadRequest(new { error = ex.Message });
         }
     }
+
+    [HttpDelete("{id:guid}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        var deleted = await mediator.Send(new DeleteUserCommand(id), cancellationToken);
+        return deleted ? NoContent() : NotFound();
+    }
 }

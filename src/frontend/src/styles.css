@@ -243,6 +243,12 @@ a {
   font-weight: 750;
 }
 
+.secondary-button.danger {
+  color: #9e3528;
+  background: #f8e7e3;
+  border-color: #e5c5be;
+}
+
 .icon-button {
   justify-content: center;
   width: 38px;

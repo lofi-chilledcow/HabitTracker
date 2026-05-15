@@ -98,4 +98,40 @@ public class AdminUserHandlersTests
 
         Assert.Equal("Role", ex.ParamName);
     }
+
+    [Fact]
+    public async Task DeleteUser_ExistingUser_RemovesUser()
+    {
+        using var db = CreateDb();
+        var userRole = new Role { Name = "User" };
+        var user = new User
+        {
+            Username = "alice",
+            Email = "alice@example.com",
+            PasswordHash = "hash",
+            Role = userRole
+        };
+        db.Roles.Add(userRole);
+        db.Users.Add(user);
+        await db.SaveChangesAsync();
+
+        var result = await new DeleteUserCommandHandler(db).Handle(
+            new DeleteUserCommand(user.Id),
+            CancellationToken.None);
+
+        Assert.True(result);
+        Assert.Empty(await db.Users.ToListAsync());
+    }
+
+    [Fact]
+    public async Task DeleteUser_MissingUser_ReturnsFalse()
+    {
+        using var db = CreateDb();
+
+        var result = await new DeleteUserCommandHandler(db).Handle(
+            new DeleteUserCommand(Guid.NewGuid()),
+            CancellationToken.None);
+
+        Assert.False(result);
+    }
 }

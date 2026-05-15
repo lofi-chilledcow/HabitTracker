@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useMemo, useState } from 'react'
-import { Power, PowerOff, Search, ShieldCheck, UserCog, Users } from 'lucide-react'
+import { Power, PowerOff, Search, ShieldCheck, Trash2, UserCog, Users } from 'lucide-react'
 import { request } from '../../shared/api/client'
 import type { AdminUser } from '../../shared/api/types'
 import { useAuth } from '../../shared/auth/AuthProvider'
@@ -29,6 +29,12 @@ export function AdminUsersPage() {
     onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
     onError: (error) => setActionError(error instanceof Error ? error.message : 'Could not update user role.'),
   })
+  const deleteUser = useMutation({
+    mutationFn: (id: string) => request<void>(`/api/admin/users/${id}`, { method: 'DELETE' }),
+    onMutate: () => setActionError(null),
+    onSuccess: () => void queryClient.invalidateQueries({ queryKey: ['admin-users'] }),
+    onError: (error) => setActionError(error instanceof Error ? error.message : 'Could not delete user.'),
+  })
 
   const allUsers = users.data ?? []
   const visibleUsers = useMemo(() => {
@@ -50,7 +56,7 @@ export function AdminUsersPage() {
 
   const activeCount = allUsers.filter((adminUser) => adminUser.isActive).length
   const adminCount = allUsers.filter((adminUser) => adminUser.role === 'Admin').length
-  const isMutating = status.isPending || role.isPending
+  const isMutating = status.isPending || role.isPending || deleteUser.isPending
 
   if (users.isLoading) return <LoadingState label="Loading users" />
   if (users.isError) return <ErrorState message="Could not load users." />
@@ -105,7 +111,7 @@ export function AdminUsersPage() {
                 </div>
                 <div className="row-meta">
                   <span className={user.isActive ? 'status-pill active' : 'status-pill disabled'}>{user.isActive ? 'Active' : 'Disabled'}</span>
-                  <span><ShieldCheck size={14} />{user.role}</span>
+                  <span><ShieldCheck size={14} />Role: {user.role}</span>
                   <span>Joined {new Date(user.createdAt).toLocaleDateString()}</span>
                 </div>
                 <div className="row-actions wide">
@@ -126,6 +132,19 @@ export function AdminUsersPage() {
                   >
                     <UserCog size={16} />
                     Make {user.role === 'Admin' ? 'User' : 'Admin'}
+                  </button>
+                  <button
+                    className="secondary-button danger"
+                    onClick={() => {
+                      if (window.confirm(`Delete ${user.username}? This cannot be undone.`)) {
+                        deleteUser.mutate(user.id)
+                      }
+                    }}
+                    disabled={isMutating || isCurrentUser}
+                    title={isCurrentUser ? 'You cannot delete your own account here' : undefined}
+                  >
+                    <Trash2 size={16} />
+                    Delete
                   </button>
                 </div>
               </article>
