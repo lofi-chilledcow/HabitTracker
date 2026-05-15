@@ -105,6 +105,12 @@ a {
   border-color: #4c8c60;
 }
 
+.search-field input:focus,
+.admin-toolbar select:focus {
+  outline: 2px solid #91b69b;
+  border-color: #4c8c60;
+}
+
 .form-error {
   margin: 0;
   color: #a33a2b;
@@ -245,6 +251,13 @@ a {
   color: #203429;
 }
 
+.primary-button:disabled,
+.secondary-button:disabled,
+.icon-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 .icon-button.danger {
   color: #9e3528;
 }
@@ -276,6 +289,79 @@ a {
 .leaderboard {
   display: grid;
   gap: 10px;
+}
+
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.summary-item {
+  min-height: 76px;
+  padding: 14px 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 5px 10px;
+  background: #fffdfa;
+  border: 1px solid #dfe6dc;
+  border-radius: 8px;
+}
+
+.summary-item svg {
+  color: #2f7d4f;
+}
+
+.summary-item span {
+  color: #657268;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.summary-item strong {
+  grid-column: 1 / -1;
+  font-size: 26px;
+  line-height: 1;
+}
+
+.admin-toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 180px;
+  gap: 10px;
+  align-items: center;
+}
+
+.search-field {
+  min-height: 42px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: #ffffff;
+  border: 1px solid #cdd8ce;
+  border-radius: 6px;
+  color: #657268;
+}
+
+.search-field input,
+.admin-toolbar select {
+  min-height: 42px;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #17201b;
+}
+
+.search-field input:focus {
+  outline: 0;
+}
+
+.admin-toolbar select {
+  padding: 0 12px;
+  background: #ffffff;
+  border: 1px solid #cdd8ce;
+  border-radius: 6px;
 }
 
 .habit-row {
@@ -348,6 +434,21 @@ a {
   font-weight: 750;
 }
 
+.status-pill.active {
+  color: #245f3b;
+  background: #e4f3e5;
+}
+
+.status-pill.disabled {
+  color: #8f3328;
+  background: #f8e7e3;
+}
+
+.user-row.disabled {
+  background: #fff8f6;
+  border-color: #ead0cb;
+}
+
 .row-actions {
   display: flex;
   gap: 8px;
@@ -398,5 +499,10 @@ a {
 
   .page-header {
     flex-direction: column;
+  }
+
+  .admin-summary,
+  .admin-toolbar {
+    grid-template-columns: 1fr;
   }
 }
