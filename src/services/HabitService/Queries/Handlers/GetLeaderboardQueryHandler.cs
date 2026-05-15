@@ -17,15 +17,21 @@ public class GetLeaderboardQueryHandler(HabitDbContext db)
         var rows = await db.Habits
             .AsNoTracking()
             .Where(h => h.IsActive && h.IsPublic)
+            .Join(
+                db.UserProfiles.AsNoTracking(),
+                habit => habit.UserId,
+                user => user.Id,
+                (habit, user) => new { Habit = habit, User = user })
             .Select(h => new
             {
-                h.Id,
-                h.Name,
-                h.Description,
-                h.Frequency,
-                h.TargetDaysPerWeek,
-                CompletionCount = h.Completions.Count(c => c.CompletedDate >= fromDate),
-                h.CreatedAt
+                h.Habit.Id,
+                h.User.Username,
+                h.Habit.Name,
+                h.Habit.Description,
+                h.Habit.Frequency,
+                h.Habit.TargetDaysPerWeek,
+                CompletionCount = h.Habit.Completions.Count(c => c.CompletedDate >= fromDate),
+                h.Habit.CreatedAt
             })
             .OrderByDescending(h => h.CompletionCount)
             .ThenBy(h => h.CreatedAt)
@@ -35,6 +41,7 @@ public class GetLeaderboardQueryHandler(HabitDbContext db)
         return rows
             .Select(h => new LeaderboardEntryDto(
                 h.Id,
+                h.Username,
                 h.Name,
                 h.Description,
                 h.Frequency,

@@ -44,6 +44,7 @@ export type HabitCompletion = {
 
 export type LeaderboardEntry = {
   habitId: string
+  username: string
   name: string
   description?: string | null
   frequency: string

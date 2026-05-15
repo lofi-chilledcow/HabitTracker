@@ -7,9 +7,17 @@ public class HabitDbContext(DbContextOptions<HabitDbContext> options) : DbContex
 {
     public DbSet<Habit> Habits => Set<Habit>();
     public DbSet<HabitCompletion> HabitCompletions => Set<HabitCompletion>();
+    public DbSet<UserProfile> UserProfiles => Set<UserProfile>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<UserProfile>(entity =>
+        {
+            entity.ToTable("Users", "auth");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Username).HasMaxLength(100).IsRequired();
+        });
+
         modelBuilder.Entity<Habit>(entity =>
         {
             entity.ToTable("Habits", "habit", table =>

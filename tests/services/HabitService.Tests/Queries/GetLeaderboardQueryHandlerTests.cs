@@ -20,6 +20,7 @@ public class GetLeaderboardQueryHandlerTests
     public async Task Handle_ReturnsOnlyPublicActiveHabits()
     {
         using var db = CreateDb();
+        db.UserProfiles.Add(new UserProfile { Id = UserId, Username = "alex" });
         var publicHabit = new Habit { UserId = UserId, Name = "Public", Frequency = "daily", IsPublic = true };
         var privateHabit = new Habit { UserId = UserId, Name = "Private", Frequency = "daily", IsPublic = false };
         var archivedHabit = new Habit { UserId = UserId, Name = "Archived", Frequency = "daily", IsPublic = true, IsActive = false };
@@ -32,12 +33,14 @@ public class GetLeaderboardQueryHandlerTests
 
         var entry = Assert.Single(result);
         Assert.Equal(publicHabit.Id, entry.HabitId);
+        Assert.Equal("alex", entry.Username);
     }
 
     [Fact]
     public async Task Handle_OrdersByRecentCompletionCount()
     {
         using var db = CreateDb();
+        db.UserProfiles.Add(new UserProfile { Id = UserId, Username = "alex" });
         var firstHabit = new Habit { UserId = UserId, Name = "First", Frequency = "daily", IsPublic = true, CreatedAt = DateTime.UtcNow.AddDays(-2) };
         var secondHabit = new Habit { UserId = UserId, Name = "Second", Frequency = "daily", IsPublic = true, CreatedAt = DateTime.UtcNow.AddDays(-1) };
         var today = DateOnly.FromDateTime(DateTime.UtcNow);

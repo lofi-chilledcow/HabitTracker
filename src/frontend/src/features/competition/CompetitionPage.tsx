@@ -31,6 +31,7 @@ export function CompetitionPage() {
               <div>
                 <strong>{entry.name}</strong>
                 <span>{entry.description || entry.frequency}</span>
+                <span>by {entry.username}</span>
               </div>
               <div className="score"><Trophy size={17} />{entry.completionCount}</div>
             </article>
